@@ -8,7 +8,7 @@ import { SpeedRecall } from '../components/practice/SpeedRecall';
 import { SimilarCharacterGame } from '../components/practice/SimilarCharacterGame';
 import { MatchGame } from '../components/practice/MatchGame';
 import { Flashcard } from '../components/practice/Flashcard';
-import { WordBuilder } from '../components/practice/WordBuilder';
+import { AudioSequenceMemory } from '../components/practice/AudioSequenceMemory';
 import { EarTraining } from '../components/practice/EarTraining';
 import { SessionResults } from '../components/practice/SessionResults';
 import { LearningTip } from '../components/common/LearningTip';
@@ -133,8 +133,8 @@ export const PracticePage: React.FC<PracticePageProps> = ({
     );
   }
 
-  // 3. Render Standalone Full-Session Modes (Match Up, Word Builder, Spot Difference)
-  if (selectedMode === 'word-builder') {
+  // 3. Render Standalone Full-Session Modes (Match Up, Audio Sequence Memory, Spot Difference)
+  if (selectedMode === 'sequence-memory') {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
@@ -143,10 +143,10 @@ export const PracticePage: React.FC<PracticePageProps> = ({
             className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Exit Word Builder</span>
+            <span>Exit Audio Sequence Memory</span>
           </button>
         </div>
-        <WordBuilder
+        <AudioSequenceMemory
           activeFont={currentFont}
           onPlayAudio={onPlayAudio}
           onFinish={() => onFinishSession()}

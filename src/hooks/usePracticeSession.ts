@@ -76,7 +76,7 @@ export function usePracticeSession() {
     const effectiveSubModes: PracticeMode[] = [
       'read-it',
       'build-it',
-      'word-builder',
+      'sequence-memory',
       'ear-training',
       'pure-recall',
       'write-it',

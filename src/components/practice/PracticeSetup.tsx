@@ -11,7 +11,7 @@ import {
   Zap, 
   Shuffle, 
   Check, 
-  Boxes,
+  ListOrdered,
   Radio,
   Type
 } from 'lucide-react';
@@ -54,15 +54,13 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
   onSelectQuestionCount,
   currentFont,
   onSelectFont,
-  fontMode,
-  onSelectFontMode,
   onStartPractice,
 }) => {
 
   const gameModes: { id: PracticeMode; title: string; subTitle: string; desc: string; icon: any }[] = [
     { id: 'read-it', title: 'Read It', subTitle: 'Character → Sound', desc: 'See さ, pick sound "sa"', icon: HelpCircle },
     { id: 'build-it', title: 'Build It', subTitle: 'Sound → Character', desc: 'See "shi", pick し', icon: BookOpen },
-    { id: 'word-builder', title: 'Word Builder', subTitle: 'Vocabulary Assembly', desc: 'Assemble Japanese words with English meaning (🐱 Cat = ねこ)', icon: Boxes },
+    { id: 'sequence-memory', title: 'Audio Sequence Memory', subTitle: 'Simons Says Recall', desc: 'Listen to 3, 5, 8 or 10 spoken sounds & tap tiles in exact order', icon: ListOrdered },
     { id: 'ear-training', title: 'Ear Training', subTitle: 'Audio Blind Test', desc: 'Listen to spoken sound with text hidden & pick character', icon: Radio },
     { id: 'pure-recall', title: 'Pure Recall', subTitle: 'True Recall', desc: 'Mental recall without choices', icon: Eye },
     { id: 'write-it', title: 'Write It', subTitle: 'Handwriting', desc: 'Draw Hiragana on canvas', icon: Edit3 },

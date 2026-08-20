@@ -5,7 +5,7 @@ export type FontMode = 'selected' | 'random';
 export type PracticeMode = 
   | 'read-it'             // Read It (Character -> Sound)
   | 'build-it'            // Build It (Sound -> Character)
-  | 'word-builder'        // Word Builder (Assemble Japanese vocabulary words)
+  | 'sequence-memory'     // Audio Sequence Memory (Listen to audio sequence & tap tiles in exact order)
   | 'ear-training'        // Ear Training (Audio Blind Test)
   | 'pure-recall'         // Pure Recall (True Recall)
   | 'write-it'            // Write It (Handwriting)
@@ -34,15 +34,6 @@ export interface HiraganaCharacter {
   rowName: string;
   exampleWord?: string;
   exampleMeaning?: string;
-}
-
-export interface VocabularyWord {
-  id: string;
-  japanese: string;
-  romaji: string;
-  english: string;
-  emoji?: string;
-  chars: string[];
 }
 
 export interface HiraganaRow {
