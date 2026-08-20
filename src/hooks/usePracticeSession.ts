@@ -76,6 +76,8 @@ export function usePracticeSession() {
     const effectiveSubModes: PracticeMode[] = [
       'read-it',
       'build-it',
+      'word-builder',
+      'ear-training',
       'pure-recall',
       'write-it',
       'speed-recall'
@@ -106,7 +108,7 @@ export function usePracticeSession() {
           .map(c => c.romanization);
         const wrongOptions = shuffle(distractorPool).slice(0, 3);
         options = shuffle([correctAnswer, ...wrongOptions]);
-      } else if (currentQuestionMode === 'build-it' || currentQuestionMode === 'sound-to-char') {
+      } else if (currentQuestionMode === 'build-it' || currentQuestionMode === 'sound-to-char' || currentQuestionMode === 'ear-training') {
         correctAnswer = targetChar.character;
         const distractorPool = HIRAGANA_DATA
           .filter(c => c.character !== targetChar.character)
@@ -118,7 +120,7 @@ export function usePracticeSession() {
       }
 
       generated.push({
-        id: `q_${i}_${Date.now()}`,
+        id: `q_${i}_${Date.now()}_${Math.random()}`,
         mode: currentQuestionMode,
         character: targetChar,
         prompt: (currentQuestionMode === 'build-it' || currentQuestionMode === 'sound-to-char' || currentQuestionMode === 'write-it' || currentQuestionMode === 'writing')

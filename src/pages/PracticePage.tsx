@@ -8,6 +8,8 @@ import { SpeedRecall } from '../components/practice/SpeedRecall';
 import { SimilarCharacterGame } from '../components/practice/SimilarCharacterGame';
 import { MatchGame } from '../components/practice/MatchGame';
 import { Flashcard } from '../components/practice/Flashcard';
+import { WordBuilder } from '../components/practice/WordBuilder';
+import { EarTraining } from '../components/practice/EarTraining';
 import { SessionResults } from '../components/practice/SessionResults';
 import { LearningTip } from '../components/common/LearningTip';
 import { StrokeOrderViewer } from '../components/practice/StrokeOrderViewer';
@@ -82,7 +84,6 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   onPlayAudio,
   onGoHome,
   onPracticeMistakes,
-  progressMap
 }) => {
   const [activeStrokeChar, setActiveStrokeChar] = React.useState<HiraganaCharacter | null>(null);
 
@@ -132,7 +133,28 @@ export const PracticePage: React.FC<PracticePageProps> = ({
     );
   }
 
-  // 3. Render Match Up or Spot the Difference directly
+  // 3. Render Standalone Full-Session Modes (Match Up, Word Builder, Spot Difference)
+  if (selectedMode === 'word-builder') {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center max-w-2xl mx-auto">
+          <button
+            onClick={onGoHome}
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Exit Word Builder</span>
+          </button>
+        </div>
+        <WordBuilder
+          activeFont={currentFont}
+          onPlayAudio={onPlayAudio}
+          onFinish={() => onFinishSession()}
+        />
+      </div>
+    );
+  }
+
   if (selectedMode === 'match-up' || selectedMode === 'match') {
     return (
       <div className="space-y-4">
@@ -181,7 +203,6 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   if (!currentQuestion) return null;
 
   const progressPercent = Math.round(((currentIndex + 1) / totalQuestions) * 100);
-
   const qMode = currentQuestion.mode;
 
   return (
@@ -226,6 +247,15 @@ export const PracticePage: React.FC<PracticePageProps> = ({
 
       {(qMode === 'build-it' || qMode === 'sound-to-char') && (
         <SoundToCharacter
+          question={currentQuestion}
+          activeFont={currentFont}
+          onAnswer={onRecordResult}
+          onPlayAudio={onPlayAudio}
+        />
+      )}
+
+      {qMode === 'ear-training' && (
+        <EarTraining
           question={currentQuestion}
           activeFont={currentFont}
           onAnswer={onRecordResult}

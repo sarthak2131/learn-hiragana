@@ -1,35 +1,45 @@
 import React from 'react';
-import { RowSelector } from '../common/RowSelector';
-import { FontSelector } from '../common/FontSelector';
-import { PracticeMode, FontStyle, FontMode, Difficulty } from '../../types';
 import { 
   Play, 
   Sparkles, 
   HelpCircle, 
+  BookOpen, 
   Eye, 
   Edit3, 
+  Grid2X2, 
+  Layers, 
   Zap, 
   Shuffle, 
-  Layers, 
-  Grid2X2, 
-  BookOpen 
+  Check, 
+  Boxes,
+  Radio,
+  Type
 } from 'lucide-react';
+import { HIRAGANA_ROWS } from '../../data/hiraganaData';
+import { PracticeMode, FontStyle, FontMode, Difficulty } from '../../types';
+import { FONT_CLASSES, FONT_DESCRIPTIONS } from '../../hooks/useFont';
 
 interface PracticeSetupProps {
   selectedRowIds: string[];
   onToggleRow: (rowId: string) => void;
   onSelectAllRows: () => void;
   onClearAllRows: () => void;
+
   selectedMode: PracticeMode;
   onSelectMode: (mode: PracticeMode) => void;
+
   questionCount: number;
   onSelectQuestionCount: (count: number) => void;
+
   currentFont: FontStyle;
   onSelectFont: (font: FontStyle) => void;
+
   fontMode: FontMode;
   onSelectFontMode: (mode: FontMode) => void;
+
   difficulty: Difficulty;
   onSelectDifficulty: (diff: Difficulty) => void;
+
   onStartPractice: () => void;
 }
 
@@ -46,100 +56,92 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
   onSelectFont,
   fontMode,
   onSelectFontMode,
-  difficulty,
-  onSelectDifficulty,
-  onStartPractice
+  onStartPractice,
 }) => {
-  const modes: { id: PracticeMode; label: string; subLabel: string; desc: string; icon: any }[] = [
-    { id: 'read-it', label: 'Read It', subLabel: 'Character → Sound', desc: 'See さ, pick sound "sa"', icon: HelpCircle },
-    { id: 'build-it', label: 'Build It', subLabel: 'Sound → Character', desc: 'See "shi", pick し', icon: BookOpen },
-    { id: 'pure-recall', label: 'Pure Recall', subLabel: 'True Recall', desc: 'Mental recall without choices', icon: Eye },
-    { id: 'write-it', label: 'Write It', subLabel: 'Handwriting', desc: 'Draw Hiragana on canvas', icon: Edit3 },
-    { id: 'match-up', label: 'Match Up', subLabel: 'Matching', desc: 'Interactive column matching game', icon: Grid2X2 },
-    { id: 'spot-difference', label: 'Spot the Difference', subLabel: 'Similar Characters', desc: 'Distinguish さ vs き, ぬ vs め', icon: Layers },
-    { id: 'speed-recall', label: 'Speed Recall', subLabel: 'Fast Recognition', desc: 'Timer recall challenge', icon: Zap },
-    { id: 'mixed-challenge', label: 'Mixed Challenge', subLabel: 'Complete Mastery', desc: 'Random mix of all question types', icon: Shuffle },
-    { id: 'flashcard', label: 'Flashcards', subLabel: 'Leitner Study Cards', desc: 'Interactive 3D study cards', icon: Sparkles },
+
+  const gameModes: { id: PracticeMode; title: string; subTitle: string; desc: string; icon: any }[] = [
+    { id: 'read-it', title: 'Read It', subTitle: 'Character → Sound', desc: 'See さ, pick sound "sa"', icon: HelpCircle },
+    { id: 'build-it', title: 'Build It', subTitle: 'Sound → Character', desc: 'See "shi", pick し', icon: BookOpen },
+    { id: 'word-builder', title: 'Word Builder', subTitle: 'Vocabulary Assembly', desc: 'Assemble Japanese words with English meaning (🐱 Cat = ねこ)', icon: Boxes },
+    { id: 'ear-training', title: 'Ear Training', subTitle: 'Audio Blind Test', desc: 'Listen to spoken sound with text hidden & pick character', icon: Radio },
+    { id: 'pure-recall', title: 'Pure Recall', subTitle: 'True Recall', desc: 'Mental recall without choices', icon: Eye },
+    { id: 'write-it', title: 'Write It', subTitle: 'Handwriting', desc: 'Draw Hiragana on canvas', icon: Edit3 },
+    { id: 'match-up', title: 'Match Up', subTitle: 'Matching', desc: 'Interactive 2-column matching game', icon: Grid2X2 },
+    { id: 'spot-difference', title: 'Spot Difference', subTitle: 'Similar Chars', desc: 'Distinguish さ vs き, ぬ vs め', icon: Layers },
+    { id: 'speed-recall', title: 'Speed Recall', subTitle: 'Fast Recognition', desc: 'Timer recall challenge up to 3x', icon: Zap },
+    { id: 'mixed-challenge', title: 'Mixed Challenge', subTitle: 'Complete Mastery', desc: 'Random mix of all question types', icon: Shuffle },
   ];
 
+  const fontOptions: FontStyle[] = ['kyokasho', 'mincho', 'gothic'];
+  const countOptions = [10, 20, 30, 50];
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4 animate-fadeIn">
+    <div className="max-w-5xl mx-auto space-y-8 py-4 animate-fadeIn">
       
-      {/* Setup Hero Card */}
-      <div className="bg-gradient-to-br from-rose-500 to-amber-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-[#151c2c] p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold mb-3">
+          <div className="text-xs font-extrabold uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Customize Your Practice</span>
+            <span>Practice Session Studio</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Hiragana Game Studio</h2>
-          <p className="text-sm opacity-90 mt-1 max-w-md">
-            Choose your games, rows, Japanese practice font, and speed difficulty.
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white mt-1">
+            Configure Practice Session
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Select game mode, characters rows to practice, and target question count.
           </p>
         </div>
 
         <button
           onClick={onStartPractice}
-          disabled={selectedRowIds.length === 0}
-          className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-rose-600 font-extrabold text-base shadow-2xl hover:bg-slate-100 hover:scale-105 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50"
+          className="px-8 py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-extrabold text-base shadow-xl shadow-rose-500/25 hover:scale-105 transition-all flex items-center justify-center gap-2.5 shrink-0"
         >
-          <span>Start Practice</span>
+          <span>Start Session</span>
           <Play className="w-5 h-5 fill-current" />
         </button>
       </div>
 
-      {/* 1. Row Selection */}
-      <RowSelector
-        selectedRowIds={selectedRowIds}
-        onToggleRow={onToggleRow}
-        onSelectAll={onSelectAllRows}
-        onClearAll={onClearAllRows}
-        currentFont={currentFont}
-      />
-
-      {/* 2. Practice Games Grid */}
-      <div className="bg-white dark:bg-[#151c2c] rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-        <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Choose Practice Game</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Select how you want to train your active recall</p>
-        </div>
+      {/* 1. Select Game Mode Section */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>1. Select Game Mode</span>
+        </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {modes.map(m => {
-            const Icon = m.icon;
-            // Match both new ID and legacy aliases
-            const isSelected = selectedMode === m.id || 
-              (m.id === 'read-it' && selectedMode === 'char-to-sound') ||
-              (m.id === 'build-it' && selectedMode === 'sound-to-char') ||
-              (m.id === 'pure-recall' && selectedMode === 'true-recall') ||
-              (m.id === 'write-it' && selectedMode === 'writing') ||
-              (m.id === 'match-up' && selectedMode === 'match') ||
-              (m.id === 'spot-difference' && selectedMode === 'similar') ||
-              (m.id === 'mixed-challenge' && selectedMode === 'mixed');
+          {gameModes.map(g => {
+            const Icon = g.icon;
+            const isSelected = selectedMode === g.id;
 
             return (
               <button
-                key={m.id}
-                onClick={() => onSelectMode(m.id)}
-                className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
+                key={g.id}
+                onClick={() => onSelectMode(g.id)}
+                className={`p-4 rounded-2xl border-2 transition-all text-left flex flex-col justify-between ${
                   isSelected
-                    ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20'
-                    : 'bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                    ? 'bg-rose-500/10 border-rose-500 text-slate-900 dark:text-white ring-4 ring-rose-500/10 scale-[1.02]'
+                    : 'bg-white dark:bg-[#151c2c] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-400 dark:hover:border-rose-600'
                 }`}
               >
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                  isSelected ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}>
-                  <Icon className="w-5 h-5" />
-                </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-extrabold text-slate-900 dark:text-white">{m.label}</span>
-                    <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
-                      {m.subLabel}
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                      isSelected ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    }`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-rose-500 font-extrabold" />}
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{m.desc}</div>
+
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    {g.title}
+                  </h3>
+                  <div className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                    {g.subTitle}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {g.desc}
+                  </p>
                 </div>
               </button>
             );
@@ -147,76 +149,110 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
         </div>
       </div>
 
-      {/* 3. Font Selection Section */}
-      <FontSelector
-        currentFont={currentFont}
-        onSelectFont={onSelectFont}
-        fontMode={fontMode}
-        onSelectFontMode={onSelectFontMode}
-        isEmbedded={true}
-      />
+      {/* 2. Select Character Rows Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
+            2. Select Character Rows ({selectedRowIds.length} Rows Selected)
+          </h2>
 
-      {/* 4. Question Count & Difficulty options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Questions Count */}
-        <div className="bg-white dark:bg-[#151c2c] rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-            Questions per session
-          </label>
-          <div className="grid grid-cols-5 gap-2">
-            {[10, 20, 30, 50, 999].map(cnt => (
-              <button
-                key={cnt}
-                onClick={() => onSelectQuestionCount(cnt)}
-                className={`py-2 rounded-xl border text-xs font-bold transition-all ${
-                  questionCount === cnt
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                }`}
-              >
-                {cnt === 999 ? '∞' : cnt}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <button
+              onClick={onSelectAllRows}
+              className="text-rose-600 dark:text-rose-400 hover:underline"
+            >
+              Select All
+            </button>
+            <span className="text-slate-300">|</span>
+            <button
+              onClick={onClearAllRows}
+              className="text-slate-500 hover:underline"
+            >
+              Clear All
+            </button>
           </div>
         </div>
 
-        {/* Speed recall difficulty */}
-        <div className="bg-white dark:bg-[#151c2c] rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-            Difficulty Tier
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { id: 'relaxed', label: 'Relaxed' },
-              { id: 'normal', label: 'Normal' },
-              { id: 'fast', label: 'Fast' },
-              { id: 'extreme', label: 'Extreme' },
-            ].map(d => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {HIRAGANA_ROWS.map(row => {
+            const isSelected = selectedRowIds.includes(row.id);
+
+            return (
               <button
-                key={d.id}
-                onClick={() => onSelectDifficulty(d.id as Difficulty)}
-                className={`py-2 rounded-xl border text-xs font-semibold transition-all ${
-                  difficulty === d.id
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                key={row.id}
+                onClick={() => onToggleRow(row.id)}
+                className={`p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between ${
+                  isSelected
+                    ? 'bg-rose-500/10 border-rose-500 text-slate-900 dark:text-white'
+                    : 'bg-white dark:bg-[#151c2c] border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-rose-400'
                 }`}
               >
-                {d.label}
+                <div>
+                  <div className="text-xs font-extrabold uppercase text-slate-400">Row {row.name}</div>
+                  <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5" style={{ fontFamily: FONT_DESCRIPTIONS[currentFont].title }}>
+                    {row.label}
+                  </div>
+                </div>
+
+                <div className={`w-6 h-6 rounded-lg border flex items-center justify-center ${
+                  isSelected ? 'bg-rose-600 border-rose-600 text-white' : 'border-slate-300 dark:border-slate-700'
+                }`}>
+                  {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                </div>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Start Button Footer */}
-      <div className="flex justify-center pt-2">
-        <button
-          onClick={onStartPractice}
-          disabled={selectedRowIds.length === 0}
-          className="w-full sm:w-80 py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 text-white font-extrabold text-lg shadow-xl shadow-rose-500/25 hover:scale-105 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50"
-        >
-          <span>Start Game Session →</span>
-        </button>
+      {/* 3. Settings (Question Count & Font Style) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {/* Question Count Selection */}
+        <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+            Question Count
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {countOptions.map(cnt => (
+              <button
+                key={cnt}
+                onClick={() => onSelectQuestionCount(cnt)}
+                className={`py-3 rounded-2xl border-2 text-xs font-extrabold transition-all ${
+                  questionCount === cnt
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/20'
+                    : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-400'
+                }`}
+              >
+                {cnt} Qs
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Font Style Selection */}
+        <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <Type className="w-4 h-4 text-rose-500" />
+            <span>Practice Font Style</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {fontOptions.map(f => (
+              <button
+                key={f}
+                onClick={() => onSelectFont(f)}
+                className={`py-3 rounded-2xl border-2 text-xs font-extrabold transition-all capitalize ${
+                  currentFont === f
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/20'
+                    : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-400'
+                }`}
+              >
+                {FONT_DESCRIPTIONS[f].title}
+              </button>
+            ))}
+          </div>
+        </div>
+
       </div>
 
     </div>
