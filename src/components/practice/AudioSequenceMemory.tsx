@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Volume2, Sparkles, CheckCircle2, XCircle, ArrowRight, RotateCcw, Play, ListOrdered } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Volume2, CheckCircle2, ArrowRight, ListOrdered } from 'lucide-react';
 import { FontStyle, HiraganaCharacter } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
 import { HIRAGANA_DATA } from '../../data/hiraganaData';
@@ -23,7 +23,6 @@ function shuffle<T>(arr: T[]): T[] {
 export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
   activeFont,
   onPlayAudio,
-  onFinish
 }) => {
   const [sequenceLength, setSequenceLength] = useState<number>(5); // 3, 5, 8, 10
   const [targetSequence, setTargetSequence] = useState<HiraganaCharacter[]>([]);
@@ -63,7 +62,7 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
     for (let i = 0; i < seq.length; i++) {
       setActiveAudioCharIndex(i);
       onPlayAudio(seq[i].character);
-      await new Promise((resolve) => setTimeout(resolve, 850));
+      await new Promise((resolve) => setTimeout(resolve, 950));
     }
 
     setActiveAudioCharIndex(null);
@@ -115,6 +114,8 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
     return shuffle([...targetSequence, ...extraDistractors]);
   }, [targetSequence]);
 
+  const activeSpokenChar = activeAudioCharIndex !== null ? targetSequence[activeAudioCharIndex] : null;
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-2 animate-fadeIn">
       
@@ -152,7 +153,7 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
       </div>
 
       {/* Main Audio Sequence Visualizer Prompt Card */}
-      <div className="bg-gradient-to-br from-slate-900 via-[#151c2c] to-rose-950 text-white p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-5 text-center">
+      <div className="bg-gradient-to-br from-slate-900 via-[#151c2c] to-rose-950 text-white p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-5 text-center relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-rose-300">
             {isPlayingAudioChain ? '🔊 Spoken Audio Sequence Playing...' : '🎧 Select Tiles In Spoken Audio Order'}
@@ -172,44 +173,68 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
           </button>
         </div>
 
-        {/* Sequence Slots Progress Display */}
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2">
+        {/* Live Audio Spoken Character + English Transcription Display Banner */}
+        {isPlayingAudioChain && activeSpokenChar ? (
+          <div className="py-2 animate-fadeIn flex flex-col items-center justify-center">
+            <div className={`text-6xl sm:text-7xl font-black text-rose-400 ${FONT_CLASSES[activeFont]}`}>
+              {activeSpokenChar.character}
+            </div>
+            <div className="mt-1 text-xl font-extrabold text-amber-300 font-mono tracking-wider uppercase">
+              "{activeSpokenChar.romanization}"
+            </div>
+          </div>
+        ) : (
+          <div className="py-2 text-xs font-semibold text-slate-300">
+            {isCompleted ? '🎉 Sequence Complete!' : 'Listen to audio and select matching tiles'}
+          </div>
+        )}
+
+        {/* Sequence Slots Progress Display with English Transcription below */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 py-2">
           {targetSequence.map((targetChar, idx) => {
             const userPickedChar = userSequence[idx];
             const isCurrentPlayingAudio = activeAudioCharIndex === idx;
 
             let slotStyle = "bg-white/10 border-white/20 text-white/40";
+            let displayChar = `${idx + 1}`;
+            let displayRomaji = "";
 
             if (isCurrentPlayingAudio) {
               slotStyle = "bg-rose-500 border-rose-400 text-white ring-4 ring-rose-500/30 scale-110 shadow-xl";
+              displayChar = targetChar.character;
+              displayRomaji = targetChar.romanization;
             } else if (userPickedChar) {
               slotStyle = isCompleted
                 ? "bg-emerald-500 border-emerald-400 text-white shadow-lg"
                 : isWrong
                 ? "bg-rose-500 border-rose-400 text-white animate-bounce"
                 : "bg-indigo-600 border-indigo-500 text-white shadow-md";
+              displayChar = userPickedChar.character;
+              displayRomaji = userPickedChar.romanization;
+            } else if (isCompleted) {
+              displayChar = targetChar.character;
+              displayRomaji = targetChar.romanization;
             }
 
             return (
-              <div
-                key={idx}
-                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 text-2xl sm:text-3xl font-extrabold flex items-center justify-center transition-all ${FONT_CLASSES[activeFont]} ${slotStyle}`}
-              >
-                {/* Hide character during play; reveal when user taps or when audio plays */}
-                {isCurrentPlayingAudio ? targetChar.character : userPickedChar?.character || `${idx + 1}`}
+              <div key={idx} className="flex flex-col items-center gap-1">
+                <div
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 text-2xl sm:text-3xl font-extrabold flex items-center justify-center transition-all ${FONT_CLASSES[activeFont]} ${slotStyle}`}
+                >
+                  {displayChar}
+                </div>
+                
+                {/* Real-time English Romaji Transcription Label */}
+                <div className="text-[11px] font-mono font-bold text-amber-300 min-h-[16px]">
+                  {displayRomaji}
+                </div>
               </div>
             );
           })}
         </div>
-
-        <div className="text-xs text-slate-300 font-medium">
-          {isPlayingAudioChain
-            ? `Audio playing character ${activeAudioCharIndex !== null ? activeAudioCharIndex + 1 : 1} of ${sequenceLength}`
-            : `Selected ${userSequence.length} of ${sequenceLength} characters in sequence`}
-        </div>
       </div>
 
-      {/* Tile Selection Deck */}
+      {/* Tile Selection Deck with Hiragana + English Romaji */}
       <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -232,9 +257,14 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
                 key={charObj.id}
                 onClick={() => handleTileClick(charObj)}
                 disabled={isPlayingAudioChain || isCompleted}
-                className={`p-4 rounded-2xl border-2 text-3xl font-extrabold flex items-center justify-center transition-all ${FONT_CLASSES[activeFont]} bg-slate-50 dark:bg-[#0b0f19] border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white hover:border-rose-500 hover:scale-105 active:scale-95 shadow-sm disabled:opacity-40`}
+                className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center transition-all bg-slate-50 dark:bg-[#0b0f19] border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white hover:border-rose-500 hover:scale-105 active:scale-95 shadow-sm disabled:opacity-40`}
               >
-                {charObj.character}
+                <span className={`text-3xl font-extrabold ${FONT_CLASSES[activeFont]}`}>
+                  {charObj.character}
+                </span>
+                <span className="text-[11px] font-mono font-bold text-slate-400 mt-0.5">
+                  {charObj.romanization}
+                </span>
               </button>
             );
           })}
@@ -249,7 +279,7 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
             <div>
               <div className="text-lg font-black">100% Correct Sequence Recall! 🎉</div>
               <div className="text-xs opacity-90">
-                Sequence ({sequenceLength} chars): {targetSequence.map(c => c.character).join(' → ')}
+                Sequence ({sequenceLength} chars): {targetSequence.map(c => `${c.character} (${c.romanization})`).join(' → ')}
               </div>
             </div>
           </div>
