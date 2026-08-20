@@ -13,7 +13,9 @@ import {
   Check, 
   ListOrdered,
   Radio,
-  Type
+  Type,
+  Layers3,
+  CheckCheck
 } from 'lucide-react';
 import { HIRAGANA_ROWS } from '../../data/hiraganaData';
 import { PracticeMode, FontStyle, FontMode, Difficulty } from '../../types';
@@ -60,7 +62,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
   const gameModes: { id: PracticeMode; title: string; subTitle: string; desc: string; icon: any }[] = [
     { id: 'read-it', title: 'Read It', subTitle: 'Character → Sound', desc: 'See さ, pick sound "sa"', icon: HelpCircle },
     { id: 'build-it', title: 'Build It', subTitle: 'Sound → Character', desc: 'See "shi", pick し', icon: BookOpen },
-    { id: 'sequence-memory', title: 'Audio Sequence Memory', subTitle: 'Simons Says Recall', desc: 'Listen to 3, 5, 8 or 10 spoken sounds & tap tiles in exact order', icon: ListOrdered },
+    { id: 'memory-flip', title: 'Memory Flip Cards', subTitle: 'Concentration Pairs', desc: 'Flip 3D face-down cards to match Hiragana & Sounds', icon: Layers3 },
+    { id: 'true-false', title: 'Rapid True / False', subTitle: '2-Sec Binary Test', desc: 'Is し = "shi"? Tap TRUE (✔️) or FALSE (❌) in 2 seconds', icon: CheckCheck },
+    { id: 'sequence-memory', title: 'Sequence Memory', subTitle: 'Simons Says Recall', desc: 'Listen to 3, 5, 8 or 10 spoken sounds & tap tiles in order', icon: ListOrdered },
     { id: 'ear-training', title: 'Ear Training', subTitle: 'Audio Blind Test', desc: 'Listen to spoken sound with text hidden & pick character', icon: Radio },
     { id: 'pure-recall', title: 'Pure Recall', subTitle: 'True Recall', desc: 'Mental recall without choices', icon: Eye },
     { id: 'write-it', title: 'Write It', subTitle: 'Handwriting', desc: 'Draw Hiragana on canvas', icon: Edit3 },

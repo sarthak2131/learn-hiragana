@@ -7,6 +7,8 @@ export type PracticeMode =
   | 'build-it'            // Build It (Sound -> Character)
   | 'sequence-memory'     // Audio Sequence Memory (Listen to audio sequence & tap tiles in exact order)
   | 'ear-training'        // Ear Training (Audio Blind Test)
+  | 'memory-flip'         // Memory Flip Cards (3D Concentrative Pair Matching)
+  | 'true-false'          // Rapid Fire True or False (2-second binary speed test)
   | 'pure-recall'         // Pure Recall (True Recall)
   | 'write-it'            // Write It (Handwriting)
   | 'match-up'            // Match Up (Matching)

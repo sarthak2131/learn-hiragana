@@ -78,6 +78,7 @@ export function usePracticeSession() {
       'build-it',
       'sequence-memory',
       'ear-training',
+      'true-false',
       'pure-recall',
       'write-it',
       'speed-recall'

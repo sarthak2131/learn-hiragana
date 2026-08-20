@@ -15,7 +15,9 @@ import {
   Shuffle, 
   ArrowRight,
   Radio,
-  ListOrdered
+  ListOrdered,
+  Layers3,
+  CheckCheck
 } from 'lucide-react';
 import { FontStyle, UserSettings, PracticeMode } from '../types/index';
 import { FONT_CLASSES, FONT_DESCRIPTIONS } from '../hooks/useFont';
@@ -46,14 +48,16 @@ export const HomePage: React.FC<HomePageProps> = ({
   const games: { id: PracticeMode; title: string; subTitle: string; desc: string; icon: any; badgeColor: string }[] = [
     { id: 'read-it', title: 'Read It', subTitle: 'Character → Sound', desc: 'See さ, pick sound "sa"', icon: HelpCircle, badgeColor: 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400' },
     { id: 'build-it', title: 'Build It', subTitle: 'Sound → Character', desc: 'See "shi", pick し', icon: BookOpen, badgeColor: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400' },
-    { id: 'sequence-memory', title: 'Audio Sequence Memory', subTitle: 'Simons Says Recall', desc: 'Listen to 3, 5, 8 or 10 spoken sounds & tap tiles in exact order', icon: ListOrdered, badgeColor: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' },
+    { id: 'memory-flip', title: 'Memory Flip Cards', subTitle: 'Concentration Pairs', desc: 'Flip 3D face-down cards to match Hiragana & Sounds', icon: Layers3, badgeColor: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400' },
+    { id: 'true-false', title: 'Rapid True / False', subTitle: '2-Sec Binary Test', desc: 'Is し = "shi"? Tap TRUE (✔️) or FALSE (❌) in 2 seconds', icon: CheckCheck, badgeColor: 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400' },
+    { id: 'sequence-memory', title: 'Sequence Memory', subTitle: 'Simons Says Recall', desc: 'Listen to 3, 5, 8 or 10 spoken sounds & tap tiles in order', icon: ListOrdered, badgeColor: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' },
     { id: 'ear-training', title: 'Ear Training', subTitle: 'Audio Blind Test', desc: 'Listen to spoken sound with text hidden & pick character', icon: Radio, badgeColor: 'bg-teal-100 text-teal-600 dark:bg-teal-950 dark:text-teal-400' },
-    { id: 'pure-recall', title: 'Pure Recall', subTitle: 'True Recall', desc: 'Mental recall without choices', icon: Eye, badgeColor: 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400' },
+    { id: 'pure-recall', title: 'Pure Recall', subTitle: 'True Recall', desc: 'Mental recall without choices', icon: Eye, badgeColor: 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400' },
     { id: 'write-it', title: 'Write It', subTitle: 'Handwriting', desc: 'Draw Hiragana on canvas', icon: Edit3, badgeColor: 'bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400' },
-    { id: 'match-up', title: 'Match Up', subTitle: 'Matching', desc: 'Interactive 2-column matching game', icon: Grid2X2, badgeColor: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400' },
+    { id: 'match-up', title: 'Match Up', subTitle: 'Matching', desc: 'Interactive 2-column matching game', icon: Grid2X2, badgeColor: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400' },
     { id: 'spot-difference', title: 'Spot Difference', subTitle: 'Similar Chars', desc: 'Distinguish さ vs き, ぬ vs め', icon: Layers, badgeColor: 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400' },
     { id: 'speed-recall', title: 'Speed Recall', subTitle: 'Fast Recognition', desc: 'Timer recall challenge up to 3x', icon: Zap, badgeColor: 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400' },
-    { id: 'mixed-challenge', title: 'Mixed Challenge', subTitle: 'Complete Mastery', desc: 'Random mix of all question types', icon: Shuffle, badgeColor: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400' },
+    { id: 'mixed-challenge', title: 'Mixed Challenge', subTitle: 'Complete Mastery', desc: 'Random mix of all question types', icon: Shuffle, badgeColor: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' },
   ];
 
   return (
@@ -79,7 +83,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed">
-            Choose from 10 interactive practice games. Train audio sequence memory, listening ear test, mental recall, and handwriting with live font switching.
+            Choose from 12 interactive practice games. Train 3D memory flip cards, rapid True/False, audio sequence recall, and handwriting with live font switching.
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
