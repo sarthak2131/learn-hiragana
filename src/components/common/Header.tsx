@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, Sun, Moon, Settings, Sparkles, Type } from 'lucide-react';
+import { Volume2, VolumeX, Sun, Moon, Settings, Type } from 'lucide-react';
 import type { FontStyle, UserSettings } from '../../types';
 
 interface HeaderProps {
@@ -46,8 +46,16 @@ export function Header({
           onClick={onNavigateHome}
           className="flex items-center gap-3 text-left group"
         >
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl overflow-hidden border-2 border-rose-500/40 shadow-lg shadow-rose-500/25 group-hover:scale-105 transition-transform bg-slate-900 flex items-center justify-center">
+            <img 
+              src="/logo.png" 
+              alt="Hiragana Studio Logo" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback if logo failed loading
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
           </div>
           <div>
             <div className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
