@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Volume2, CheckCircle2, ArrowRight, ListOrdered } from 'lucide-react';
+import { Volume2, CheckCircle2, ArrowRight, ListOrdered, Radio } from 'lucide-react';
 import { FontStyle, HiraganaCharacter } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
 import { HIRAGANA_DATA } from '../../data/hiraganaData';
@@ -156,7 +156,7 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
       <div className="bg-gradient-to-br from-slate-900 via-[#151c2c] to-rose-950 text-white p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-5 text-center relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-rose-300">
-            {isPlayingAudioChain ? '🔊 Spoken Audio Sequence Playing...' : '🎧 Select Tiles In Spoken Audio Order'}
+            {isPlayingAudioChain ? '🔊 Spoken Audio Playing...' : '🎧 Tap Tiles In Spoken Audio Order'}
           </span>
 
           <button
@@ -173,35 +173,39 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
           </button>
         </div>
 
-        {/* Live Audio Spoken Character + English Transcription Display Banner */}
+        {/* Live Audio Spoken Sound Wave Icon + English Romaji (Japanese character is HIDDEN!) */}
         {isPlayingAudioChain && activeSpokenChar ? (
-          <div className="py-2 animate-fadeIn flex flex-col items-center justify-center">
-            <div className={`text-6xl sm:text-7xl font-black text-rose-400 ${FONT_CLASSES[activeFont]}`}>
-              {activeSpokenChar.character}
+          <div className="py-3 animate-fadeIn flex flex-col items-center justify-center space-y-2">
+            
+            {/* Sound Wave Circle Icon */}
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-rose-400 shadow-xl ring-8 ring-rose-500/10 animate-pulse">
+              <Volume2 className="w-10 h-10 sm:w-12 sm:h-12 animate-bounce" />
             </div>
-            <div className="mt-1 text-xl font-extrabold text-amber-300 font-mono tracking-wider uppercase">
+
+            {/* Real-time English Romaji Transcription */}
+            <div className="text-2xl sm:text-3xl font-mono font-black text-amber-300 tracking-wider uppercase">
               "{activeSpokenChar.romanization}"
             </div>
           </div>
         ) : (
-          <div className="py-2 text-xs font-semibold text-slate-300">
-            {isCompleted ? '🎉 Sequence Complete!' : 'Listen to audio and select matching tiles'}
+          <div className="py-3 text-xs font-semibold text-slate-300">
+            {isCompleted ? '🎉 Sequence Complete!' : 'Listen carefully and select matching Hiragana tiles below'}
           </div>
         )}
 
-        {/* Sequence Slots Progress Display with English Transcription below */}
+        {/* Sequence Slots Progress Display */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 py-2">
           {targetSequence.map((targetChar, idx) => {
             const userPickedChar = userSequence[idx];
             const isCurrentPlayingAudio = activeAudioCharIndex === idx;
 
             let slotStyle = "bg-white/10 border-white/20 text-white/40";
-            let displayChar = `${idx + 1}`;
+            let displayChar: React.ReactNode = `${idx + 1}`;
             let displayRomaji = "";
 
             if (isCurrentPlayingAudio) {
               slotStyle = "bg-rose-500 border-rose-400 text-white ring-4 ring-rose-500/30 scale-110 shadow-xl";
-              displayChar = targetChar.character;
+              displayChar = <Volume2 className="w-6 h-6 animate-pulse" />;
               displayRomaji = targetChar.romanization;
             } else if (userPickedChar) {
               slotStyle = isCompleted
