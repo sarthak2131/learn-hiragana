@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/common/Header';
 import { MobileNav } from './components/common/MobileNav';
 import { FontSelector } from './components/common/FontSelector';
@@ -21,6 +21,8 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 
 import { PracticeMode, UserSettings, HiraganaCharacter } from './types/index';
 import { getCharacterByChar } from './data/hiraganaData';
+
+type TabId = 'home' | 'practice' | 'chart' | 'dashboard' | 'writing';
 
 export function App() {
   const { font, setFont, fontMode, setFontMode } = useFont();
@@ -60,9 +62,6 @@ export function App() {
     finishSession
   } = usePracticeSession();
 
-  // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'practice' | 'chart' | 'dashboard' | 'writing'>('home');
-
   // Selected Rows for Practice (Default A, K, S, T)
   const [selectedRowIds, setSelectedRowIds] = useLocalStorage<string[]>('hiragana_selected_rows', ['A', 'K', 'S', 'T']);
   const [selectedMode, setSelectedMode] = useState<PracticeMode>('read-it');
@@ -72,6 +71,37 @@ export function App() {
   const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [selectedDetailChar, setSelectedDetailChar] = useState<HiraganaCharacter | null>(null);
+
+  // URL Hash-Based Routing State (Persists game mode on page refresh & browser back button!)
+  const [activeTab, setActiveTabState] = useState<TabId>(() => {
+    const hash = window.location.hash.replace('#/', '').replace('#', '');
+    if (['home', 'practice', 'chart', 'dashboard', 'writing'].includes(hash)) {
+      return hash as TabId;
+    }
+    return 'home';
+  });
+
+  const changeTab = (newTab: TabId) => {
+    setActiveTabState(newTab);
+    window.history.pushState({ tab: newTab }, '', `#/${newTab}`);
+  };
+
+  // Sync state with browser back/forward buttons (popstate event)
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const hash = window.location.hash.replace('#/', '').replace('#', '');
+      if (['home', 'practice', 'chart', 'dashboard', 'writing'].includes(hash)) {
+        setActiveTabState(hash as TabId);
+      } else if (e.state?.tab) {
+        setActiveTabState(e.state.tab);
+      } else {
+        setActiveTabState('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Row selection helpers
   const handleToggleRow = (rowId: string) => {
@@ -107,7 +137,7 @@ export function App() {
       progressMap,
       specificChars
     );
-    setActiveTab('practice');
+    changeTab('practice');
   };
 
   // Single Character Writing Practice Trigger
@@ -123,7 +153,7 @@ export function App() {
       progressMap,
       [char]
     );
-    setActiveTab('practice');
+    changeTab('practice');
   };
 
   // Review Mistakes trigger
@@ -161,7 +191,7 @@ export function App() {
         settings={settings}
         onUpdateSettings={(newSet) => setSettings(prev => ({ ...prev, ...newSet }))}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onNavigateHome={() => setActiveTab('home')}
+        onNavigateHome={() => changeTab('home')}
       />
 
       {/* Main View Router */}
@@ -177,9 +207,9 @@ export function App() {
             onStartPractice={(mode) => {
               handleStartPracticeSession(mode);
             }}
-            onViewChart={() => setActiveTab('chart')}
-            onViewWriting={() => setActiveTab('writing')}
-            onViewDashboard={() => setActiveTab('dashboard')}
+            onViewChart={() => changeTab('chart')}
+            onViewWriting={() => changeTab('writing')}
+            onViewDashboard={() => changeTab('dashboard')}
           />
         )}
 
@@ -216,7 +246,7 @@ export function App() {
             onRecordResult={handleRecordAnswerResult}
             onFinishSession={finishSession}
             onPlayAudio={speakText}
-            onGoHome={() => setActiveTab('home')}
+            onGoHome={() => changeTab('home')}
             onPracticeMistakes={handleStartMistakeReview}
             progressMap={progressMap}
           />
@@ -247,7 +277,7 @@ export function App() {
             }}
             onReviewMistakes={handleStartMistakeReview}
             onStartPractice={() => {
-              setActiveTab('practice');
+              changeTab('practice');
             }}
           />
         )}
@@ -264,7 +294,7 @@ export function App() {
       {/* Mobile Bottom Navigation */}
       <MobileNav
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={changeTab}
       />
 
       {/* Font Selector Modal */}
