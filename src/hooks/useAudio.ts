@@ -17,12 +17,15 @@ const ROMAN_TO_HIRAGANA: Record<string, string> = {
 export function useAudio(enabled: boolean) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playingText, setPlayingText] = useState<string | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(0.85); // Default 0.85x
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const speakText = useCallback((text: string) => {
+  const speakText = useCallback((text: string, customSpeed?: number) => {
     if (!enabled || !text) return;
 
-    // Convert Romanization ('i', 'ka', 'shi') to true Japanese Hiragana character ('い', 'か', 'し')
+    const activeSpeed = customSpeed || playbackSpeed;
+
+    // Convert Romanization ('i', 'ka') to true Japanese Hiragana character ('い', 'か')
     const lowerText = text.trim().toLowerCase();
     const japaneseChar = ROMAN_TO_HIRAGANA[lowerText] || text;
 
@@ -43,19 +46,20 @@ export function useAudio(enabled: boolean) {
       setPlayingText(null);
     };
 
-    // 1. Direct Japanese Spoken Audio Stream (Plays true Japanese pronunciation: い = "इ", あ = "अ")
+    // 1. Direct Japanese Spoken Audio Stream with dynamic playbackRate speed
     const encodedText = encodeURIComponent(japaneseChar);
     const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodedText}&le=jap`;
     const audio = new Audio(audioUrl);
+    audio.playbackRate = activeSpeed;
     currentAudioRef.current = audio;
 
     audio.onended = handleStop;
     audio.onerror = () => {
-      // 2. Web Speech API with explicit Japanese character
+      // 2. Web Speech API with explicit Japanese voice & rate speed
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(japaneseChar);
         utterance.lang = 'ja-JP';
-        utterance.rate = 0.85;
+        utterance.rate = activeSpeed;
 
         const voices = window.speechSynthesis.getVoices();
         const jaVoice = voices.find(v => 
@@ -83,7 +87,7 @@ export function useAudio(enabled: boolean) {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(japaneseChar);
         utterance.lang = 'ja-JP';
-        utterance.rate = 0.85;
+        utterance.rate = activeSpeed;
 
         const voices = window.speechSynthesis.getVoices();
         const jaVoice = voices.find(v => 
@@ -107,17 +111,19 @@ export function useAudio(enabled: boolean) {
       }
     });
 
-    // Safety timeout after 1.8s
+    const timeoutDuration = Math.max(1200, Math.round(1800 / activeSpeed));
     setTimeout(() => {
       setIsPlaying(false);
       setPlayingText(null);
-    }, 1800);
+    }, timeoutDuration);
 
-  }, [enabled]);
+  }, [enabled, playbackSpeed]);
 
   return {
     speakText,
     isPlaying,
-    playingText
+    playingText,
+    playbackSpeed,
+    setPlaybackSpeed
   };
 }
