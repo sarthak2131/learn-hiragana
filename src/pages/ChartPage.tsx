@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { FontStyle, HiraganaCharacter } from '../types';
 import { HIRAGANA_ROWS } from '../data/hiraganaData';
-import { Volume2, Sparkles, Gauge } from 'lucide-react';
+import { Volume2, Sparkles, Zap } from 'lucide-react';
 
 interface ChartPageProps {
   activeFont: FontStyle;
@@ -19,9 +19,9 @@ const fontFamilies: Record<FontStyle, string> = {
 export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayAudio }: ChartPageProps) {
   const [playingRowId, setPlayingRowId] = useState<string | null>(null);
   const [activeChar, setActiveChar] = useState<string | null>(null);
-  const [audioSpeed, setAudioSpeed] = useState<number>(0.75); // Default 0.75x speed
+  const [audioSpeed, setAudioSpeed] = useState<number>(1.0); // Default 1.0x
 
-  // Play full row sequentially with speed control
+  // Smooth sequential row playback with zero lag
   const handlePlayFullRow = async (rowId: string, chars: HiraganaCharacter[]) => {
     if (playingRowId === rowId) {
       setPlayingRowId(null);
@@ -31,8 +31,8 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
 
     setPlayingRowId(rowId);
 
-    // Dynamic delay between characters based on speed
-    const stepDelay = Math.max(400, Math.round(750 / audioSpeed));
+    // Smooth delay scaling from 0.5x up to 3.0x
+    const stepDelay = Math.max(220, Math.round(650 / audioSpeed));
 
     for (let i = 0; i < chars.length; i++) {
       const c = chars[i];
@@ -50,7 +50,7 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
     <div className="max-w-6xl mx-auto space-y-6 py-4 animate-fadeIn">
       
       {/* Header Controls */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <div className="text-xs font-extrabold uppercase tracking-[0.24em] text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
@@ -60,26 +60,26 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
             Browse and tap any character
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Tap a character or click "Play Full Row". Adjust audio speed below.
+            Tap a character or click "Play Full Row". Adjust playback speed up to 3x below.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           
-          {/* Audio Speed Selector */}
+          {/* Audio Speed Selector up to 3x */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-1 px-2 text-xs font-extrabold text-slate-600 dark:text-slate-300">
-              <Gauge className="w-3.5 h-3.5 text-rose-500" />
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
               <span>Speed:</span>
             </div>
 
-            {[0.5, 0.75, 1.0, 1.25].map((spd) => (
+            {[0.5, 1.0, 1.5, 2.0, 3.0].map((spd) => (
               <button
                 key={spd}
                 onClick={() => setAudioSpeed(spd)}
                 className={`px-2.5 py-1 rounded-xl text-xs font-extrabold transition-all ${
                   audioSpeed === spd
-                    ? 'bg-rose-600 text-white shadow-xs'
+                    ? 'bg-rose-600 text-white shadow-xs scale-105'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -145,7 +145,7 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
                   title={`Play all characters in Row ${row.name}`}
                 >
                   <Volume2 className={`w-4 h-4 ${isRowPlaying ? 'animate-pulse text-white' : 'text-rose-500'}`} />
-                  <span>{isRowPlaying ? `Playing Row ${row.name}...` : `Play Full Row (${row.name})`}</span>
+                  <span>{isRowPlaying ? `Playing Row ${row.name} (${audioSpeed}x)...` : `Play Full Row (${row.name})`}</span>
                 </button>
               </div>
 
