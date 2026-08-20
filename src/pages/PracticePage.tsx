@@ -10,7 +10,6 @@ import { MatchGame } from '../components/practice/MatchGame';
 import { Flashcard } from '../components/practice/Flashcard';
 import { AudioSequenceMemory } from '../components/practice/AudioSequenceMemory';
 import { EarTraining } from '../components/practice/EarTraining';
-import { MemoryFlipGame } from '../components/practice/MemoryFlipGame';
 import { TrueFalseGame } from '../components/practice/TrueFalseGame';
 import { SessionResults } from '../components/practice/SessionResults';
 import { LearningTip } from '../components/common/LearningTip';
@@ -135,29 +134,7 @@ export const PracticePage: React.FC<PracticePageProps> = ({
     );
   }
 
-  // 3. Render Standalone Full-Session Modes (Match Up, Memory Flip Cards, Audio Sequence Memory, Spot Difference)
-  if (selectedMode === 'memory-flip') {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center max-w-2xl mx-auto">
-          <button
-            onClick={onGoHome}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Exit Memory Flip Cards</span>
-          </button>
-        </div>
-        <MemoryFlipGame
-          activeFont={currentFont}
-          selectedRowIds={selectedRowIds}
-          onPlayAudio={onPlayAudio}
-          onFinish={() => onFinishSession()}
-        />
-      </div>
-    );
-  }
-
+  // 3. Render Standalone Full-Session Modes (Match Up, Audio Sequence Memory, Spot Difference)
   if (selectedMode === 'sequence-memory') {
     return (
       <div className="space-y-4">
