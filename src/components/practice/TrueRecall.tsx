@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles, Clock, Zap } from 'lucide-react';
+import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles, Clock, Zap, Flame } from 'lucide-react';
 import type { FontStyle, Question } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
 
@@ -16,6 +16,9 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const [submittedResult, setSubmittedResult] = useState<{ isCorrect: boolean; typedAnswer: string; isTimeOut?: boolean } | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   
+  // Consecutive Streak state (Tracks correct answers in a row!)
+  const [consecutiveStreak, setConsecutiveStreak] = useState<number>(0);
+
   // Timer state: 0 = Off, 3 = 3s, 5 = 5s, 10 = 10s, 15 = 15s
   const [timerPreset, setTimerPreset] = useState<number>(0); // Default Off
   const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -135,10 +138,13 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     setSubmittedResult(resultObj);
 
     if (isCorrect) {
+      setConsecutiveStreak(s => s + 1);
       handlePlayAudio();
       setTimeout(() => {
         advanceNextQuestion(resultObj);
       }, 350);
+    } else {
+      setConsecutiveStreak(0);
     }
   };
 
@@ -161,12 +167,13 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
       };
 
       setSubmittedResult(resultObj);
+      setConsecutiveStreak(s => s + 1);
       handlePlayAudio();
 
       // Auto advance immediately without needing Enter key press or Check click!
       setTimeout(() => {
         advanceNextQuestion(resultObj);
-      }, 280);
+      }, 320);
     }
   };
 
@@ -210,10 +217,13 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     setSubmittedResult(resultObj);
 
     if (isCorrect) {
+      setConsecutiveStreak(s => s + 1);
       handlePlayAudio();
       setTimeout(() => {
         advanceNextQuestion(resultObj);
-      }, 280);
+      }, 320);
+    } else {
+      setConsecutiveStreak(0);
     }
   };
 
@@ -237,7 +247,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   return (
     <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn relative">
       
-      {/* Top Section Header with Fixed Dimensions to prevent vertical layout shifts during audio play */}
+      {/* Top Section Header with Fixed Dimensions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[56px]">
         <div className="flex-1 min-w-0">
           <div className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
@@ -270,7 +280,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             ))}
           </div>
 
-          {/* Fixed Width Play Button to prevent layout shift between "Play" and "Playing..." */}
+          {/* Fixed Width Play Button */}
           <button
             onClick={handlePlayAudio}
             className={`w-24 sm:w-28 flex items-center justify-center gap-2 rounded-2xl py-2 text-xs font-extrabold transition-all shrink-0 ${
@@ -285,7 +295,15 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* 3-2-1 Ready Countdown Animated Banner (Appears ONLY on initial timer preset selection!) */}
+      {/* Dynamic Animated Streak Banner (Appears when 2 or more correct in a row!) */}
+      {consecutiveStreak >= 2 && (
+        <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-black text-xs uppercase tracking-widest text-center shadow-lg animate-bounce flex items-center justify-center gap-2 border border-amber-300/30">
+          <Flame className="w-4 h-4 text-amber-200 fill-current animate-pulse" />
+          <span>🔥 STREAK: {consecutiveStreak} IN A ROW! KEEP IT UP!</span>
+        </div>
+      )}
+
+      {/* 3-2-1 Ready Countdown Animated Banner */}
       {readyCount > 0 ? (
         <div className="p-3 rounded-2xl bg-amber-500 text-white font-extrabold text-sm text-center animate-bounce flex items-center justify-center gap-2 shadow-lg">
           <Zap className="w-5 h-5 text-amber-200 fill-current animate-pulse" />
@@ -321,7 +339,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* Input Field & Action Button */}
+      {/* Input Field & Dynamic Color Action Button */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -344,6 +362,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all read-only:opacity-75 disabled:opacity-50"
           />
 
+          {/* Button style changes dynamically based on result (Check vs Correct! vs Next) */}
           {!submittedResult ? (
             <button
               onClick={handleCheck}
@@ -351,6 +370,14 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               className="rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
             >
               {readyCount > 0 ? `${readyCount}...` : 'Check'}
+            </button>
+          ) : submittedResult.isCorrect ? (
+            <button
+              onClick={handleNext}
+              className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>Correct! 🎉</span>
+              <CheckCircle2 className="w-5 h-5" />
             </button>
           ) : (
             <button
