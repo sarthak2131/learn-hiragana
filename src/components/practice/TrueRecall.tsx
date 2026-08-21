@@ -36,7 +36,6 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const handleSelectTimerPreset = (preset: number) => {
     setTimerPreset(preset);
     if (preset > 0) {
-      // Trigger 3-2-1 countdown ONCE when manually selecting a timer preset
       hasTriggeredInitialReady.current = true;
       setReadyCount(3);
       setTimeLeft(preset);
@@ -55,11 +54,9 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     if (timerPreset > 0) {
       setTimeLeft(timerPreset);
       if (!hasTriggeredInitialReady.current) {
-        // If initial 3-2-1 has not been run for this preset, run it once
         hasTriggeredInitialReady.current = true;
         setReadyCount(3);
       } else {
-        // Subsequent questions start answer timer immediately!
         setReadyCount(0);
         startedAt.current = Date.now();
         setTimeout(() => {
@@ -88,11 +85,11 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
           setTimeout(() => {
             inputRef.current?.focus();
           }, 50);
-          return 0; // Ready countdown finished!
+          return 0;
         }
         return prev - 1;
       });
-    }, 450); // 450ms per step
+    }, 450);
 
     return () => {
       if (readyIntervalRef.current) clearInterval(readyIntervalRef.current);
@@ -141,11 +138,39 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
       handlePlayAudio();
       setTimeout(() => {
         advanceNextQuestion(resultObj);
-      }, 450);
+      }, 350);
     }
   };
 
-  // Global Enter Key Listener: If answer is already submitted, pressing Enter anywhere advances to Next!
+  // Real-time Instant Typing Matcher: As soon as typed string matches correct answer, auto-advance instantly!
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setValue(newVal);
+
+    if (submittedResult || readyCount > 0) return;
+
+    const normalizedTyped = newVal.trim().toLowerCase();
+    const normalizedExpected = expectedAnswer.trim().toLowerCase();
+
+    if (normalizedTyped.length > 0 && normalizedTyped === normalizedExpected) {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+
+      const resultObj = {
+        isCorrect: true,
+        typedAnswer: newVal.trim()
+      };
+
+      setSubmittedResult(resultObj);
+      handlePlayAudio();
+
+      // Auto advance immediately without needing Enter key press or Check click!
+      setTimeout(() => {
+        advanceNextQuestion(resultObj);
+      }, 280);
+    }
+  };
+
+  // Global Enter Key Listener for Incorrect answer review
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -186,10 +211,9 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
 
     if (isCorrect) {
       handlePlayAudio();
-      // If answer is CORRECT, automatically advance to next question after 400ms!
       setTimeout(() => {
         advanceNextQuestion(resultObj);
-      }, 400);
+      }, 280);
     }
   };
 
@@ -305,7 +329,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             value={value}
             disabled={readyCount > 0}
             readOnly={submittedResult !== null}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 if (!submittedResult) {
@@ -325,7 +349,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               disabled={!value.trim() || readyCount > 0}
               className="rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              {readyCount > 0 ? `${readyCount}...` : 'Check (↵)'}
+              {readyCount > 0 ? `${readyCount}...` : 'Check'}
             </button>
           ) : (
             <button
