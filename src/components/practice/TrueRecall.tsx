@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles, Clock } from 'lucide-react';
+import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles, Clock, Zap } from 'lucide-react';
 import type { FontStyle, Question } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
 
@@ -20,34 +20,61 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const [timerPreset, setTimerPreset] = useState<number>(0); // Default Off
   const [timeLeft, setTimeLeft] = useState<number>(0);
   
+  // 3-2-1 Ready Countdown state
+  const [readyCount, setReadyCount] = useState<number>(0); // 3, 2, 1, 0 (0 means active)
+
   const startedAt = useRef<number>(Date.now());
   const inputRef = useRef<HTMLInputElement | null>(null);
   const timerIntervalRef = useRef<any>(null);
+  const readyIntervalRef = useRef<any>(null);
 
   const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
   const expectedAnswer = isReverse ? question.character.character : question.character.romanization;
 
-  // Reset input box, timer, and state whenever question changes!
+  // Reset input box, timer, and trigger 3-2-1 countdown whenever question or preset changes!
   useEffect(() => {
     setValue('');
     setSubmittedResult(null);
-    startedAt.current = Date.now();
 
     if (timerPreset > 0) {
+      setReadyCount(3);
       setTimeLeft(timerPreset);
     } else {
+      setReadyCount(0);
       setTimeLeft(0);
+      startedAt.current = Date.now();
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
-
-    // Auto focus input field for instant typing
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
   }, [question.id, timerPreset]);
 
-  // Countdown Ticker Logic
+  // 3-2-1 Ready Countdown Interval Ticker
   useEffect(() => {
-    if (timerPreset <= 0 || submittedResult !== null) {
+    if (readyCount <= 0 || timerPreset <= 0) return;
+
+    readyIntervalRef.current = setInterval(() => {
+      setReadyCount(prev => {
+        if (prev <= 1) {
+          clearInterval(readyIntervalRef.current);
+          startedAt.current = Date.now();
+          setTimeout(() => {
+            inputRef.current?.focus();
+          }, 50);
+          return 0; // Ready countdown finished!
+        }
+        return prev - 1;
+      });
+    }, 450); // 450ms per step for punchy 3... 2... 1... countdown
+
+    return () => {
+      if (readyIntervalRef.current) clearInterval(readyIntervalRef.current);
+    };
+  }, [readyCount, timerPreset]);
+
+  // Answer Countdown Ticker (Runs ONLY when readyCount === 0)
+  useEffect(() => {
+    if (timerPreset <= 0 || readyCount > 0 || submittedResult !== null) {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       return;
     }
@@ -66,7 +93,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [timerPreset, submittedResult, question.id]);
+  }, [timerPreset, readyCount, submittedResult, question.id]);
 
   const handleTimeOut = () => {
     if (submittedResult) return;
@@ -108,6 +135,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   };
 
   const handleCheck = () => {
+    if (readyCount > 0) return; // Still in 3-2-1 countdown
     if (submittedResult) return; // Already checked
     if (!value.trim()) return;
 
@@ -141,7 +169,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const timerProgressPercent = timerPreset > 0 ? Math.max(0, Math.min(100, (timeLeft / timerPreset) * 100)) : 0;
 
   return (
-    <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn">
+    <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn relative">
       
       {/* Top Section Header with Countdown Preset Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -190,22 +218,30 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* Live Countdown Progress Bar */}
-      {timerPreset > 0 && (
-        <div className="space-y-1">
-          <div className="flex justify-between items-center text-xs font-mono font-extrabold text-slate-500">
-            <span>Countdown Timer</span>
-            <span className="text-rose-600 dark:text-rose-400">{timeLeft.toFixed(1)}s</span>
-          </div>
-          <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-100 ${
-                timerProgressPercent > 50 ? 'bg-emerald-500' : timerProgressPercent > 20 ? 'bg-amber-500' : 'bg-rose-500'
-              }`}
-              style={{ width: `${timerProgressPercent}%` }}
-            />
-          </div>
+      {/* 3-2-1 Ready Countdown Animated Banner */}
+      {readyCount > 0 ? (
+        <div className="p-3 rounded-2xl bg-amber-500 text-white font-extrabold text-sm text-center animate-bounce flex items-center justify-center gap-2 shadow-lg">
+          <Zap className="w-5 h-5 text-amber-200 fill-current animate-pulse" />
+          <span>Get Ready! Starting in {readyCount}...</span>
         </div>
+      ) : (
+        /* Live Countdown Progress Bar (Active when readyCount === 0) */
+        timerPreset > 0 && (
+          <div className="space-y-1">
+            <div className="flex justify-between items-center text-xs font-mono font-extrabold text-slate-500">
+              <span>Countdown Timer</span>
+              <span className="text-rose-600 dark:text-rose-400">{timeLeft.toFixed(1)}s</span>
+            </div>
+            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-100 ${
+                  timerProgressPercent > 50 ? 'bg-emerald-500' : timerProgressPercent > 20 ? 'bg-amber-500' : 'bg-rose-500'
+                }`}
+                style={{ width: `${timerProgressPercent}%` }}
+              />
+            </div>
+          </div>
+        )
       )}
 
       {/* Main Display Prompt Card */}
@@ -225,6 +261,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             ref={inputRef}
             type="text"
             value={value}
+            disabled={readyCount > 0}
             readOnly={submittedResult !== null}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => {
@@ -236,17 +273,17 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
                 }
               }
             }}
-            placeholder="Type your answer here..."
-            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all read-only:opacity-75"
+            placeholder={readyCount > 0 ? `Get ready... ${readyCount}` : "Type your answer here..."}
+            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all read-only:opacity-75 disabled:opacity-50"
           />
 
           {!submittedResult ? (
             <button
               onClick={handleCheck}
-              disabled={!value.trim()}
+              disabled={!value.trim() || readyCount > 0}
               className="rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              Check (↵)
+              {readyCount > 0 ? `${readyCount}...` : 'Check (↵)'}
             </button>
           ) : (
             <button
