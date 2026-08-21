@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles, Clock } from 'lucide-react';
 import type { FontStyle, Question } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
 
@@ -13,25 +13,78 @@ interface TrueRecallProps {
 
 export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, onPlayAudio }: TrueRecallProps) {
   const [value, setValue] = useState<string>('');
-  const [submittedResult, setSubmittedResult] = useState<{ isCorrect: boolean; typedAnswer: string } | null>(null);
+  const [submittedResult, setSubmittedResult] = useState<{ isCorrect: boolean; typedAnswer: string; isTimeOut?: boolean } | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+  
+  // Timer state: 0 = Off, 3 = 3s, 5 = 5s, 10 = 10s, 15 = 15s
+  const [timerPreset, setTimerPreset] = useState<number>(0); // Default Off
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  
   const startedAt = useRef<number>(Date.now());
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const timerIntervalRef = useRef<any>(null);
 
   const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
   const expectedAnswer = isReverse ? question.character.character : question.character.romanization;
 
-  // Automatically reset input box and state whenever question changes!
+  // Reset input box, timer, and state whenever question changes!
   useEffect(() => {
     setValue('');
     setSubmittedResult(null);
     startedAt.current = Date.now();
 
+    if (timerPreset > 0) {
+      setTimeLeft(timerPreset);
+    } else {
+      setTimeLeft(0);
+    }
+
     // Auto focus input field for instant typing
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-  }, [question.id]);
+  }, [question.id, timerPreset]);
+
+  // Countdown Ticker Logic
+  useEffect(() => {
+    if (timerPreset <= 0 || submittedResult !== null) {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      return;
+    }
+
+    timerIntervalRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 0.1) {
+          clearInterval(timerIntervalRef.current);
+          handleTimeOut();
+          return 0;
+        }
+        return prev - 0.1;
+      });
+    }, 100);
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [timerPreset, submittedResult, question.id]);
+
+  const handleTimeOut = () => {
+    if (submittedResult) return;
+
+    const normalizedTyped = value.trim().toLowerCase();
+    const normalizedExpected = expectedAnswer.trim().toLowerCase();
+    const isCorrect = normalizedTyped === normalizedExpected;
+
+    setSubmittedResult({
+      isCorrect,
+      typedAnswer: value.trim(),
+      isTimeOut: true
+    });
+
+    if (isCorrect) {
+      handlePlayAudio();
+    }
+  };
 
   // Global Enter Key Listener: If answer is already submitted, pressing Enter anywhere advances to Next!
   useEffect(() => {
@@ -58,6 +111,8 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     if (submittedResult) return; // Already checked
     if (!value.trim()) return;
 
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+
     const normalizedTyped = value.trim().toLowerCase();
     const normalizedExpected = expectedAnswer.trim().toLowerCase();
     const isCorrect = normalizedTyped === normalizedExpected;
@@ -83,11 +138,13 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     onAnswer(isCorrect, timeTaken);
   };
 
+  const timerProgressPercent = timerPreset > 0 ? Math.max(0, Math.min(100, (timeLeft / timerPreset) * 100)) : 0;
+
   return (
     <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn">
       
-      {/* Top Section Header */}
-      <div className="flex items-center justify-between gap-3">
+      {/* Top Section Header with Countdown Preset Buttons */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
@@ -98,18 +155,58 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
           </h3>
         </div>
 
-        <button
-          onClick={handlePlayAudio}
-          className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-extrabold transition-all ${
-            isPlayingAudio
-              ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105 ring-4 ring-amber-500/20'
-              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-900 hover:bg-amber-100'
-          }`}
-        >
-          <Volume2 className={`w-4 h-4 ${isPlayingAudio ? 'animate-pulse text-white' : 'text-amber-500'}`} />
-          <span>{isPlayingAudio ? 'Playing...' : 'Play Sound'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Countdown Preset Controls (Off, 3s, 5s, 10s, 15s) */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-1 px-1.5 text-xs font-bold text-slate-500">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+            </div>
+            {[0, 3, 5, 10, 15].map((preset) => (
+              <button
+                key={preset}
+                onClick={() => setTimerPreset(preset)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-extrabold transition-all ${
+                  timerPreset === preset
+                    ? 'bg-amber-500 text-white shadow-xs scale-105'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {preset === 0 ? 'Off' : `${preset}s`}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handlePlayAudio}
+            className={`inline-flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-extrabold transition-all ${
+              isPlayingAudio
+                ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105 ring-4 ring-amber-500/20'
+                : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-900 hover:bg-amber-100'
+            }`}
+          >
+            <Volume2 className={`w-4 h-4 ${isPlayingAudio ? 'animate-pulse text-white' : 'text-amber-500'}`} />
+            <span className="hidden sm:inline">{isPlayingAudio ? 'Playing...' : 'Play'}</span>
+          </button>
+        </div>
       </div>
+
+      {/* Live Countdown Progress Bar */}
+      {timerPreset > 0 && (
+        <div className="space-y-1">
+          <div className="flex justify-between items-center text-xs font-mono font-extrabold text-slate-500">
+            <span>Countdown Timer</span>
+            <span className="text-rose-600 dark:text-rose-400">{timeLeft.toFixed(1)}s</span>
+          </div>
+          <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-100 ${
+                timerProgressPercent > 50 ? 'bg-emerald-500' : timerProgressPercent > 20 ? 'bg-amber-500' : 'bg-rose-500'
+              }`}
+              style={{ width: `${timerProgressPercent}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main Display Prompt Card */}
       <div className="rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] p-8 sm:p-10 text-center relative group">
@@ -179,7 +276,11 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               )}
               <div>
                 <h4 className="text-base font-extrabold">
-                  {submittedResult.isCorrect ? 'Correct Answer! 🎉' : 'Incorrect Answer'}
+                  {submittedResult.isCorrect
+                    ? 'Correct Answer! 🎉'
+                    : submittedResult.isTimeOut
+                    ? 'Time Expired! ⌛'
+                    : 'Incorrect Answer'}
                 </h4>
 
                 {!submittedResult.isCorrect ? (
