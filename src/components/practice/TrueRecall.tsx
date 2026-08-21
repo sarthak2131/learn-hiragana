@@ -237,19 +237,19 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   return (
     <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn relative">
       
-      {/* Top Section Header with Countdown Preset Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
+      {/* Top Section Header with Fixed Dimensions to prevent vertical layout shifts during audio play */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[56px]">
+        <div className="flex-1 min-w-0">
           <div className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Pure Recall — Memory Challenge</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 leading-tight">
             Type the answer from memory
           </h3>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Countdown Preset Controls (Off, 3s, 5s, 10s, 15s) */}
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-1 px-1.5 text-xs font-bold text-slate-500">
@@ -270,16 +270,17 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             ))}
           </div>
 
+          {/* Fixed Width Play Button to prevent layout shift between "Play" and "Playing..." */}
           <button
             onClick={handlePlayAudio}
-            className={`inline-flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-extrabold transition-all ${
+            className={`w-24 sm:w-28 flex items-center justify-center gap-2 rounded-2xl py-2 text-xs font-extrabold transition-all shrink-0 ${
               isPlayingAudio
-                ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105 ring-4 ring-amber-500/20'
+                ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 ring-2 ring-amber-500/20'
                 : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-900 hover:bg-amber-100'
             }`}
           >
-            <Volume2 className={`w-4 h-4 ${isPlayingAudio ? 'animate-pulse text-white' : 'text-amber-500'}`} />
-            <span className="hidden sm:inline">{isPlayingAudio ? 'Playing...' : 'Play'}</span>
+            <Volume2 className={`w-4 h-4 shrink-0 ${isPlayingAudio ? 'animate-pulse text-white' : 'text-amber-500'}`} />
+            <span>{isPlayingAudio ? 'Playing...' : 'Play'}</span>
           </button>
         </div>
       </div>
