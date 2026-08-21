@@ -243,6 +243,9 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   };
 
   const timerProgressPercent = timerPreset > 0 ? Math.max(0, Math.min(100, (timeLeft / timerPreset) * 100)) : 0;
+  
+  // Show streak milestone badge ONLY on multiples of 3 (3, 6, 9, 12...)
+  const isStreakMilestone = consecutiveStreak > 0 && consecutiveStreak % 3 === 0;
 
   return (
     <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn relative">
@@ -250,10 +253,21 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
       {/* Top Section Header with Fixed Dimensions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[56px]">
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Pure Recall — Memory Challenge</span>
+          <div className="flex items-center gap-2">
+            <div className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Pure Recall — Memory Challenge</span>
+            </div>
+
+            {/* Compact Milestone Streak Badge inline in Header (3, 6, 9...) - Never shifts layout! */}
+            {isStreakMilestone && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-black uppercase tracking-wider animate-pulse shadow-xs">
+                <Flame className="w-3 h-3 text-amber-200 fill-current" />
+                <span>🔥 {consecutiveStreak} Streak!</span>
+              </span>
+            )}
           </div>
+
           <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 leading-tight">
             Type the answer from memory
           </h3>
@@ -294,14 +308,6 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
           </button>
         </div>
       </div>
-
-      {/* Dynamic Animated Streak Banner (Appears when 2 or more correct in a row!) */}
-      {consecutiveStreak >= 2 && (
-        <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-black text-xs uppercase tracking-widest text-center shadow-lg animate-bounce flex items-center justify-center gap-2 border border-amber-300/30">
-          <Flame className="w-4 h-4 text-amber-200 fill-current animate-pulse" />
-          <span>🔥 STREAK: {consecutiveStreak} IN A ROW! KEEP IT UP!</span>
-        </div>
-      )}
 
       {/* 3-2-1 Ready Countdown Animated Banner */}
       {readyCount > 0 ? (
