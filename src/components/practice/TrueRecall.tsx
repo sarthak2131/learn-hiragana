@@ -129,14 +129,19 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     const normalizedExpected = expectedAnswer.trim().toLowerCase();
     const isCorrect = normalizedTyped === normalizedExpected;
 
-    setSubmittedResult({
+    const resultObj = {
       isCorrect,
       typedAnswer: value.trim(),
       isTimeOut: true
-    });
+    };
+
+    setSubmittedResult(resultObj);
 
     if (isCorrect) {
       handlePlayAudio();
+      setTimeout(() => {
+        advanceNextQuestion(resultObj);
+      }, 450);
     }
   };
 
@@ -144,7 +149,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
-        if (submittedResult) {
+        if (submittedResult && !submittedResult.isCorrect) {
           e.preventDefault();
           handleNext();
         }
@@ -172,25 +177,35 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     const normalizedExpected = expectedAnswer.trim().toLowerCase();
     const isCorrect = normalizedTyped === normalizedExpected;
 
-    setSubmittedResult({
+    const resultObj = {
       isCorrect,
       typedAnswer: value.trim()
-    });
+    };
+
+    setSubmittedResult(resultObj);
 
     if (isCorrect) {
       handlePlayAudio();
+      // If answer is CORRECT, automatically advance to next question after 400ms!
+      setTimeout(() => {
+        advanceNextQuestion(resultObj);
+      }, 400);
     }
   };
 
-  const handleNext = () => {
-    if (!submittedResult) return;
+  const advanceNextQuestion = (resObj = submittedResult) => {
+    if (!resObj) return;
     const timeTaken = (Date.now() - startedAt.current) / 1000;
-    const isCorrect = submittedResult.isCorrect;
+    const isCorrect = resObj.isCorrect;
     
     // Clear input before calling onAnswer callback
     setValue('');
     setSubmittedResult(null);
     onAnswer(isCorrect, timeTaken);
+  };
+
+  const handleNext = () => {
+    advanceNextQuestion();
   };
 
   const timerProgressPercent = timerPreset > 0 ? Math.max(0, Math.min(100, (timeLeft / timerPreset) * 100)) : 0;
@@ -295,7 +310,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               if (e.key === 'Enter') {
                 if (!submittedResult) {
                   handleCheck();
-                } else {
+                } else if (!submittedResult.isCorrect) {
                   handleNext();
                 }
               }
@@ -363,7 +378,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
                   </div>
                 ) : (
                   <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Great recall! Press <b>Enter ↵</b> or click Next to continue.
+                    Correct! Advancing to next question...
                   </div>
                 )}
               </div>
