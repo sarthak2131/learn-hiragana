@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles, HelpCircle } from 'lucide-react';
+import { Volume2, CheckCircle2, XCircle, ArrowRight, Sparkles } from 'lucide-react';
 import type { FontStyle, Question } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
 
@@ -33,6 +33,21 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     }, 100);
   }, [question.id]);
 
+  // Global Enter Key Listener: If answer is already submitted, pressing Enter anywhere advances to Next!
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        if (submittedResult) {
+          e.preventDefault();
+          handleNext();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [submittedResult]);
+
   const handlePlayAudio = () => {
     setIsPlayingAudio(true);
     onPlayAudio(question.character.character);
@@ -41,6 +56,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
 
   const handleCheck = () => {
     if (submittedResult) return; // Already checked
+    if (!value.trim()) return;
 
     const normalizedTyped = value.trim().toLowerCase();
     const normalizedExpected = expectedAnswer.trim().toLowerCase();
@@ -112,7 +128,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             ref={inputRef}
             type="text"
             value={value}
-            disabled={submittedResult !== null}
+            readOnly={submittedResult !== null}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -124,7 +140,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               }
             }}
             placeholder="Type your answer here..."
-            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all disabled:opacity-75"
+            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all read-only:opacity-75"
           />
 
           {!submittedResult ? (
@@ -133,14 +149,14 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               disabled={!value.trim()}
               className="rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              Check
+              Check (↵)
             </button>
           ) : (
             <button
               onClick={handleNext}
               className="rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
-              <span>Next</span>
+              <span>Next (↵)</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           )}
@@ -182,7 +198,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
                   </div>
                 ) : (
                   <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Great recall! Press Enter or click Next to continue.
+                    Great recall! Press <b>Enter ↵</b> or click Next to continue.
                   </div>
                 )}
               </div>
