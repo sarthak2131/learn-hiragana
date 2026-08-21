@@ -49,7 +49,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     }
   };
 
-  // Reset input box & timer when question changes (subsequent questions start timer immediately without repeating 3-2-1!)
+  // Reset input box & timer when question changes — Keeps mobile virtual keyboard OPEN!
   useEffect(() => {
     setValue('');
     setSubmittedResult(null);
@@ -62,17 +62,13 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
       } else {
         setReadyCount(0);
         startedAt.current = Date.now();
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 80);
+        inputRef.current?.focus();
       }
     } else {
       setReadyCount(0);
       setTimeLeft(0);
       startedAt.current = Date.now();
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 80);
+      inputRef.current?.focus();
     }
   }, [question.id]);
 
@@ -85,9 +81,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         if (prev <= 1) {
           clearInterval(readyIntervalRef.current);
           startedAt.current = Date.now();
-          setTimeout(() => {
-            inputRef.current?.focus();
-          }, 50);
+          inputRef.current?.focus();
           return 0;
         }
         return prev - 1;
@@ -150,10 +144,10 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
 
   // Real-time Instant Typing Matcher: As soon as typed string matches correct answer, auto-advance instantly!
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (submittedResult || readyCount > 0) return;
+
     const newVal = e.target.value;
     setValue(newVal);
-
-    if (submittedResult || readyCount > 0) return;
 
     const normalizedTyped = newVal.trim().toLowerCase();
     const normalizedExpected = expectedAnswer.trim().toLowerCase();
@@ -170,10 +164,10 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
       setConsecutiveStreak(s => s + 1);
       handlePlayAudio();
 
-      // Auto advance immediately without needing Enter key press or Check click!
+      // Auto advance immediately without closing soft mobile keyboard!
       setTimeout(() => {
         advanceNextQuestion(resultObj);
-      }, 320);
+      }, 280);
     }
   };
 
@@ -221,7 +215,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
       handlePlayAudio();
       setTimeout(() => {
         advanceNextQuestion(resultObj);
-      }, 320);
+      }, 280);
     } else {
       setConsecutiveStreak(0);
     }
@@ -232,9 +226,10 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     const timeTaken = (Date.now() - startedAt.current) / 1000;
     const isCorrect = resObj.isCorrect;
     
-    // Clear input before calling onAnswer callback
+    // Clear input before calling onAnswer callback while keeping focus
     setValue('');
     setSubmittedResult(null);
+    inputRef.current?.focus();
     onAnswer(isCorrect, timeTaken);
   };
 
@@ -345,7 +340,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* Input Field & Dynamic Color Action Button */}
+      {/* Input Field & Dynamic Color Action Button — Input stays active so mobile virtual keyboard NEVER closes! */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -353,7 +348,6 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             type="text"
             value={value}
             disabled={readyCount > 0}
-            readOnly={submittedResult !== null}
             onChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -365,7 +359,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
               }
             }}
             placeholder={readyCount > 0 ? `Get ready... ${readyCount}` : "Type your answer here..."}
-            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all read-only:opacity-75 disabled:opacity-50"
+            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all disabled:opacity-50"
           />
 
           {/* Button style changes dynamically based on result (Check vs Correct! vs Next) */}
