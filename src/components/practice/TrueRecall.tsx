@@ -20,8 +20,9 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const [timerPreset, setTimerPreset] = useState<number>(0); // Default Off
   const [timeLeft, setTimeLeft] = useState<number>(0);
   
-  // 3-2-1 Ready Countdown state
-  const [readyCount, setReadyCount] = useState<number>(0); // 3, 2, 1, 0 (0 means active)
+  // 3-2-1 Ready Countdown state (Triggers ONLY when user clicks/selects a timer preset for the first time!)
+  const [readyCount, setReadyCount] = useState<number>(0);
+  const hasTriggeredInitialReady = useRef<boolean>(false);
 
   const startedAt = useRef<number>(Date.now());
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -31,23 +32,49 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
   const expectedAnswer = isReverse ? question.character.character : question.character.romanization;
 
-  // Reset input box, timer, and trigger 3-2-1 countdown whenever question or preset changes!
+  // Handle manual selection of timer preset button by user
+  const handleSelectTimerPreset = (preset: number) => {
+    setTimerPreset(preset);
+    if (preset > 0) {
+      // Trigger 3-2-1 countdown ONCE when manually selecting a timer preset
+      hasTriggeredInitialReady.current = true;
+      setReadyCount(3);
+      setTimeLeft(preset);
+    } else {
+      hasTriggeredInitialReady.current = false;
+      setReadyCount(0);
+      setTimeLeft(0);
+    }
+  };
+
+  // Reset input box & timer when question changes (subsequent questions start timer immediately without repeating 3-2-1!)
   useEffect(() => {
     setValue('');
     setSubmittedResult(null);
 
     if (timerPreset > 0) {
-      setReadyCount(3);
       setTimeLeft(timerPreset);
+      if (!hasTriggeredInitialReady.current) {
+        // If initial 3-2-1 has not been run for this preset, run it once
+        hasTriggeredInitialReady.current = true;
+        setReadyCount(3);
+      } else {
+        // Subsequent questions start answer timer immediately!
+        setReadyCount(0);
+        startedAt.current = Date.now();
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 80);
+      }
     } else {
       setReadyCount(0);
       setTimeLeft(0);
       startedAt.current = Date.now();
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, 80);
     }
-  }, [question.id, timerPreset]);
+  }, [question.id]);
 
   // 3-2-1 Ready Countdown Interval Ticker
   useEffect(() => {
@@ -65,7 +92,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         }
         return prev - 1;
       });
-    }, 450); // 450ms per step for punchy 3... 2... 1... countdown
+    }, 450); // 450ms per step
 
     return () => {
       if (readyIntervalRef.current) clearInterval(readyIntervalRef.current);
@@ -135,7 +162,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   };
 
   const handleCheck = () => {
-    if (readyCount > 0) return; // Still in 3-2-1 countdown
+    if (readyCount > 0) return; // Still in initial 3-2-1 countdown
     if (submittedResult) return; // Already checked
     if (!value.trim()) return;
 
@@ -192,7 +219,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
             {[0, 3, 5, 10, 15].map((preset) => (
               <button
                 key={preset}
-                onClick={() => setTimerPreset(preset)}
+                onClick={() => handleSelectTimerPreset(preset)}
                 className={`px-2.5 py-1 rounded-xl text-xs font-extrabold transition-all ${
                   timerPreset === preset
                     ? 'bg-amber-500 text-white shadow-xs scale-105'
@@ -218,7 +245,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* 3-2-1 Ready Countdown Animated Banner */}
+      {/* 3-2-1 Ready Countdown Animated Banner (Appears ONLY on initial timer preset selection!) */}
       {readyCount > 0 ? (
         <div className="p-3 rounded-2xl bg-amber-500 text-white font-extrabold text-sm text-center animate-bounce flex items-center justify-center gap-2 shadow-lg">
           <Zap className="w-5 h-5 text-amber-200 fill-current animate-pulse" />
