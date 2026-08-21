@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { FontStyle, HiraganaCharacter } from '../types';
 import { HIRAGANA_ROWS } from '../data/hiraganaData';
 import { Volume2, Sparkles, Zap } from 'lucide-react';
@@ -21,13 +21,29 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
   const [activeChar, setActiveChar] = useState<string | null>(null);
   const [audioSpeed, setAudioSpeed] = useState<number>(1.0); // Default 1.0x
 
-  // Smooth sequential row playback with zero lag
+  // Cancellation token ID to prevent overlapping row playback loops
+  const playbackIdRef = useRef<number>(0);
+
+  // Clean up ongoing audio loops on component unmount
+  useEffect(() => {
+    return () => {
+      playbackIdRef.current += 1;
+    };
+  }, []);
+
+  // Smooth sequential row playback with zero overlap/race conditions
   const handlePlayFullRow = async (rowId: string, chars: HiraganaCharacter[]) => {
+    // If clicking the same row that's already playing, stop it
     if (playingRowId === rowId) {
+      playbackIdRef.current += 1;
       setPlayingRowId(null);
       setActiveChar(null);
       return;
     }
+
+    // Increment cancellation token to abort any prior row loop instantly
+    playbackIdRef.current += 1;
+    const currentId = playbackIdRef.current;
 
     setPlayingRowId(rowId);
 
@@ -35,6 +51,11 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
     const stepDelay = Math.max(220, Math.round(650 / audioSpeed));
 
     for (let i = 0; i < chars.length; i++) {
+      // Check if a new row play or character tap interrupted this loop
+      if (playbackIdRef.current !== currentId) {
+        return;
+      }
+
       const c = chars[i];
       setActiveChar(c.character);
       onPlayAudio(c.character, audioSpeed);
@@ -42,15 +63,26 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
       await new Promise((resolve) => setTimeout(resolve, stepDelay));
     }
 
+    if (playbackIdRef.current === currentId) {
+      setPlayingRowId(null);
+      setActiveChar(null);
+    }
+  };
+
+  const handleCharacterClick = (char: HiraganaCharacter) => {
+    // Interrupt any ongoing row loop when an individual character is tapped
+    playbackIdRef.current += 1;
     setPlayingRowId(null);
-    setActiveChar(null);
+    setActiveChar(char.character);
+    onSelectCharacter(char.character);
+    onPlayAudio(char.character, audioSpeed);
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 py-4 animate-fadeIn">
       
       {/* Header Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white dark:bg-[#151c2c] p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <div className="text-xs font-extrabold uppercase tracking-[0.24em] text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
@@ -64,11 +96,11 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 max-w-full overflow-hidden">
           
-          {/* Audio Speed Selector up to 3x */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-1 px-2 text-xs font-extrabold text-slate-600 dark:text-slate-300">
+          {/* Audio Speed Selector - Horizontal Scroll Chip Container */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-x-auto max-w-full scrollbar-none shrink-0 flex-nowrap">
+            <div className="flex items-center gap-1 px-2 text-xs font-extrabold text-slate-600 dark:text-slate-300 shrink-0 whitespace-nowrap">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
               <span>Speed:</span>
             </div>
@@ -77,7 +109,7 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
               <button
                 key={spd}
                 onClick={() => setAudioSpeed(spd)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-extrabold transition-all ${
+                className={`px-2.5 py-1 rounded-xl text-xs font-extrabold shrink-0 whitespace-nowrap transition-all ${
                   audioSpeed === spd
                     ? 'bg-rose-600 text-white shadow-xs scale-105'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -89,7 +121,7 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
           </div>
 
           {/* Font Style Selectors */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 shrink-0">
             {(['kyokasho', 'mincho', 'gothic'] as FontStyle[]).map((font) => (
               <button
                 key={font}
@@ -157,10 +189,7 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
                   return (
                     <button
                       key={char.id}
-                      onClick={() => {
-                        onSelectCharacter(char.character);
-                        onPlayAudio(char.character, audioSpeed);
-                      }}
+                      onClick={() => handleCharacterClick(char)}
                       className={`rounded-2xl border-2 p-4 text-center transition-all group ${
                         isCharActive
                           ? 'bg-rose-500 text-white border-rose-500 scale-105 shadow-lg ring-4 ring-rose-500/20'
@@ -184,3 +213,4 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
     </div>
   );
 }
+

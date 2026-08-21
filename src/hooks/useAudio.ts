@@ -19,8 +19,37 @@ export function useAudio(enabled: boolean) {
   const [playingText, setPlayingText] = useState<string | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const audioCacheRef = useRef<Record<string, HTMLAudioElement>>({});
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const safetyTimeoutRef = useRef<any>(null);
+
+  const stopAudio = useCallback(() => {
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+    }
+
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch (e) {}
+      currentAudioRef.current = null;
+    }
+
+    setIsPlaying(false);
+    setPlayingText(null);
+  }, []);
 
   const speakText = useCallback((text: string, customSpeed?: number) => {
+    // Immediately stop any active speech or audio stream
+    stopAudio();
+
     if (!enabled || !text) return;
 
     const activeSpeed = customSpeed || playbackSpeed;
@@ -33,14 +62,15 @@ export function useAudio(enabled: boolean) {
     const handleStop = () => {
       setIsPlaying(false);
       setPlayingText(null);
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
     };
 
     // 1. Primary Engine: Instant Web Speech API with explicit Japanese locale voice & rate speed
-    // This is 100% hardware-accelerated, zero network latency, pitch-preserved smooth audio up to 3x!
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
-        window.speechSynthesis.cancel(); // Cancel any lingering utterances instantly
-
         const utterance = new SpeechSynthesisUtterance(japaneseChar);
         utterance.lang = 'ja-JP';
         utterance.rate = Math.min(Math.max(activeSpeed, 0.5), 3.0); // Clamp speed between 0.5x and 3.0x
@@ -65,7 +95,7 @@ export function useAudio(enabled: boolean) {
 
         // Safety timeout scaled to active speed
         const timeoutMs = Math.max(400, Math.round(1200 / activeSpeed));
-        setTimeout(handleStop, timeoutMs);
+        safetyTimeoutRef.current = setTimeout(handleStop, timeoutMs);
         return;
       } catch (e) {}
     }
@@ -78,19 +108,22 @@ export function useAudio(enabled: boolean) {
       audioCacheRef.current[japaneseChar] = audio;
     }
 
+    currentAudioRef.current = audio;
     audio.currentTime = 0;
     audio.playbackRate = activeSpeed;
     audio.onended = handleStop;
     audio.onerror = handleStop;
     audio.play().catch(handleStop);
 
-  }, [enabled, playbackSpeed]);
+  }, [enabled, playbackSpeed, stopAudio]);
 
   return {
     speakText,
+    stopAudio,
     isPlaying,
     playingText,
     playbackSpeed,
     setPlaybackSpeed
   };
 }
+

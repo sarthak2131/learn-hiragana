@@ -18,7 +18,7 @@ const items: Array<{ id: TabId; label: string; icon: ComponentType<{ className?:
 
 export function MobileNav({ activeTab, onSelectTab }: MobileNavProps) {
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0f1424]/95 backdrop-blur-xl">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0f1424]/95 backdrop-blur-xl shadow-lg">
       <div className="grid grid-cols-5 gap-1 px-2 py-2">
         {items.map((item) => {
           const Icon = item.icon;
@@ -28,14 +28,18 @@ export function MobileNav({ activeTab, onSelectTab }: MobileNavProps) {
             <button
               key={item.id}
               onClick={() => onSelectTab(item.id)}
-              className={`flex flex-col items-center justify-center gap-1 rounded-2xl py-2 transition-all ${
+              className={`relative flex flex-col items-center justify-center gap-1 rounded-2xl py-2 px-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
                 active
-                  ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300'
-                  : 'text-slate-500 dark:text-slate-400'
+                  ? 'bg-rose-600 text-white font-extrabold shadow-md shadow-rose-500/30 scale-105 dark:bg-rose-600 dark:text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
               }`}
+              title={item.label}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-bold">{item.label}</span>
+              {active && (
+                <span className="absolute -top-1 w-6 h-1 bg-rose-600 rounded-full shadow-xs dark:bg-rose-400" />
+              )}
+              <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5px]' : ''}`} />
+              <span className={`text-[10px] ${active ? 'font-black tracking-wide' : 'font-bold'}`}>{item.label}</span>
             </button>
           );
         })}
@@ -43,3 +47,4 @@ export function MobileNav({ activeTab, onSelectTab }: MobileNavProps) {
     </nav>
   );
 }
+

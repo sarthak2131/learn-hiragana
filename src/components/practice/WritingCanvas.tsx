@@ -297,8 +297,10 @@ export const WritingCanvas: React.FC<WritingCanvasProps> = ({
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
-          className="w-full h-full cursor-crosshair z-10"
+          className="w-full h-full cursor-crosshair z-10 touch-none select-none"
+          style={{ touchAction: 'none' }}
         />
+
       </div>
 
       {/* Action Toolbar */}

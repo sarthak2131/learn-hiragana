@@ -2,6 +2,8 @@ import React from 'react';
 import { Volume2, VolumeX, Sun, Moon, Settings, Type } from 'lucide-react';
 import type { FontStyle, UserSettings } from '../../types';
 
+type TabId = 'home' | 'practice' | 'chart' | 'dashboard' | 'writing';
+
 interface HeaderProps {
   currentFont: FontStyle;
   onOpenFontSelector: () => void;
@@ -12,6 +14,8 @@ interface HeaderProps {
   onUpdateSettings: (next: Partial<UserSettings>) => void;
   onOpenSettings: () => void;
   onNavigateHome: () => void;
+  activeTab?: TabId;
+  onSelectTab?: (tab: TabId) => void;
 }
 
 const fontLabel: Record<FontStyle, string> = {
@@ -19,6 +23,14 @@ const fontLabel: Record<FontStyle, string> = {
   mincho: 'Minchō',
   gothic: 'Gothic',
 };
+
+const desktopNavItems: Array<{ id: TabId; label: string }> = [
+  { id: 'home', label: 'Home' },
+  { id: 'practice', label: 'Practice' },
+  { id: 'chart', label: 'Chart' },
+  { id: 'dashboard', label: 'Stats' },
+  { id: 'writing', label: 'Write' },
+];
 
 export function Header({
   currentFont,
@@ -30,6 +42,8 @@ export function Header({
   onUpdateSettings,
   onOpenSettings,
   onNavigateHome,
+  activeTab = 'home',
+  onSelectTab,
 }: HeaderProps) {
   const toggleTheme = () => {
     const isDarkNow = document.documentElement.classList.contains('dark');
@@ -44,7 +58,7 @@ export function Header({
         {/* Brand Logo & Title */}
         <button
           onClick={onNavigateHome}
-          className="flex items-center gap-3 text-left group"
+          className="flex items-center gap-3 text-left group shrink-0"
         >
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl overflow-hidden border-2 border-rose-500/40 shadow-lg shadow-rose-500/25 group-hover:scale-105 transition-transform bg-slate-900 flex items-center justify-center">
             <img 
@@ -66,6 +80,28 @@ export function Header({
             </div>
           </div>
         </button>
+
+        {/* Desktop Header Navigation Bar */}
+        {onSelectTab && (
+          <nav className="hidden md:flex items-center gap-1 ml-4 bg-slate-100/80 dark:bg-slate-900/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+            {desktopNavItems.map((item) => {
+              const active = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onSelectTab(item.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+                    active
+                      ? 'bg-rose-600 text-white shadow-sm font-extrabold scale-105'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
         <div className="flex-1" />
 
@@ -96,7 +132,7 @@ export function Header({
             ) : (
               <VolumeX className="w-4 h-4 text-slate-400" />
             )}
-            <span className="hidden md:inline">{settings.soundEnabled ? 'Sound On' : 'Sound Off'}</span>
+            <span className="hidden lg:inline">{settings.soundEnabled ? 'Sound On' : 'Sound Off'}</span>
           </button>
 
           {/* Theme Toggle Button */}
@@ -132,3 +168,4 @@ export function Header({
     </header>
   );
 }
+
