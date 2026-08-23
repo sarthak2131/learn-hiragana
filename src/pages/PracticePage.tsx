@@ -207,7 +207,7 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   const qMode = currentQuestion.mode;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 py-4 animate-fadeIn">
+    <div className="max-w-4xl mx-auto space-y-6 py-4 animate-fadeIn">
       
       {/* Top Question Progress Header */}
       <div className="flex items-center justify-between gap-4 bg-white dark:bg-[#151c2c] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">

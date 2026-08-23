@@ -182,9 +182,9 @@ export const TrueFalseGame: React.FC<TrueFalseGameProps> = ({
         </button>
       </div>
 
-      {/* Answer Result Feedback Banner */}
+      {/* Answer Result Floating Popup Overlay Toast */}
       {isAnswered && (
-        <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 shadow-lg animate-fadeIn">
+        <div className="absolute inset-x-3 -bottom-4 sm:-bottom-5 z-30 flex items-center justify-between p-4 rounded-2xl bg-white/95 dark:bg-[#151c2ce6] border-2 border-slate-200 dark:border-slate-700 shadow-2xl backdrop-blur-xl animate-fadeIn transition-all transform slide-in-from-bottom-2 duration-200">
           <div className="flex items-center gap-3">
             {selectedAnswer === pairPrompt.isCorrectPair ? (
               <>

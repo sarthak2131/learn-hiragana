@@ -164,44 +164,50 @@ export const SpeedRecall: React.FC<SpeedRecallProps> = ({
         })}
       </div>
 
-      {/* Result feedback */}
-      {isAnswered && (
-        <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 shadow-lg animate-fadeIn">
-          <div className="flex items-center gap-3">
-            {selectedOption === question.correctAnswer ? (
-              <>
-                <CheckCircle2 className="w-7 h-7 text-emerald-500 shrink-0" />
-                <div>
-                  <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Fast & Correct!</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
-                    Response time: <span className="font-bold text-slate-900 dark:text-white">{((Date.now() - startTime) / 1000).toFixed(2)}s</span>
+      {/* Result feedback slot container */}
+      <div className="w-full min-h-[76px] flex items-center">
+        {isAnswered ? (
+          <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 shadow-lg animate-fadeIn">
+            <div className="flex items-center gap-3">
+              {selectedOption === question.correctAnswer ? (
+                <>
+                  <CheckCircle2 className="w-7 h-7 text-emerald-500 shrink-0" />
+                  <div>
+                    <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Fast & Correct!</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      Response time: <span className="font-bold text-slate-900 dark:text-white">{((Date.now() - startTime) / 1000).toFixed(2)}s</span>
+                    </div>
                   </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <XCircle className="w-7 h-7 text-rose-500 shrink-0" />
-                <div>
-                  <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                    {selectedOption === 'TIMEOUT' ? 'Time Out!' : 'Incorrect'}
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-7 h-7 text-rose-500 shrink-0" />
+                  <div>
+                    <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                      {selectedOption === 'TIMEOUT' ? 'Time Out!' : 'Incorrect'}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      Correct sound: <span className="font-bold text-slate-900 dark:text-white">{question.correctAnswer}</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
-                    Correct sound: <span className="font-bold text-slate-900 dark:text-white">{question.correctAnswer}</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
 
-          <button
-            onClick={handleNext}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-500/20 transition-all hover:scale-105"
-          >
-            <span>Next</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+            <button
+              onClick={handleNext}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-500/20 transition-all hover:scale-105"
+            >
+              <span>Next</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="w-full p-3.5 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 text-center text-xs text-slate-400 dark:text-slate-500 font-medium">
+            ⚡ Tap the matching sound option as fast as you can
+          </div>
+        )}
+      </div>
 
     </div>
   );

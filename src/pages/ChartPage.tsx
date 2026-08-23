@@ -47,25 +47,28 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
 
     setPlayingRowId(rowId);
 
-    // Smooth delay scaling from 0.5x up to 3.0x
-    const stepDelay = Math.max(220, Math.round(650 / audioSpeed));
+    try {
+      for (let i = 0; i < chars.length; i++) {
+        // Check if a new row play or character tap interrupted this loop
+        if (playbackIdRef.current !== currentId) {
+          return;
+        }
 
-    for (let i = 0; i < chars.length; i++) {
-      // Check if a new row play or character tap interrupted this loop
-      if (playbackIdRef.current !== currentId) {
-        return;
+        const c = chars[i];
+        setActiveChar(c.character);
+        await Promise.resolve(onPlayAudio(c.character, audioSpeed));
+
+        if (playbackIdRef.current !== currentId || i === chars.length - 1) {
+          continue;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, Math.max(90, Math.round(140 / audioSpeed))));
       }
-
-      const c = chars[i];
-      setActiveChar(c.character);
-      onPlayAudio(c.character, audioSpeed);
-
-      await new Promise((resolve) => setTimeout(resolve, stepDelay));
-    }
-
-    if (playbackIdRef.current === currentId) {
-      setPlayingRowId(null);
-      setActiveChar(null);
+    } finally {
+      if (playbackIdRef.current === currentId) {
+        setPlayingRowId(null);
+        setActiveChar(null);
+      }
     }
   };
 
@@ -213,4 +216,3 @@ export function ChartPage({ activeFont, onChangeFont, onSelectCharacter, onPlayA
     </div>
   );
 }
-

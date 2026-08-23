@@ -8,11 +8,28 @@ const ROMAN_TO_HIRAGANA: Record<string, string> = {
   ta: 'た', chi: 'ち', tsu: 'つ', te: 'て', to: 'と',
   na: 'な', ni: 'に', nu: 'ぬ', ne: 'ね', no: 'の',
   ha: 'は', hi: 'ひ', fu: 'ふ', he: 'へ', ho: 'ほ',
-  ma: 'ま', mi: 'み', mu: 'む', me: 'め', mo: 'mo',
+  ma: 'ま', mi: 'み', mu: 'む', me: 'め', mo: 'も',
   ya: 'や', yu: 'ゆ', yo: 'よ',
   ra: 'ら', ri: 'り', ru: 'る', re: 'れ', ro: 'ろ',
   wa: 'わ', wo: 'を', n: 'ん'
 };
+
+function pickJapaneseVoice(voices: SpeechSynthesisVoice[]) {
+  return voices.find((voice) => {
+    const name = voice.name.toLowerCase();
+    const lang = voice.lang.toLowerCase();
+
+    return (
+      lang.startsWith('ja') ||
+      lang.includes('jp') ||
+      name.includes('japanese') ||
+      name.includes('haruka') ||
+      name.includes('kyoko') ||
+      name.includes('ayumi') ||
+      name.includes('sakura')
+    );
+  }) ?? null;
+}
 
 export function useAudio(enabled: boolean) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -20,9 +37,12 @@ export function useAudio(enabled: boolean) {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const audioCacheRef = useRef<Record<string, HTMLAudioElement>>({});
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
-  const safetyTimeoutRef = useRef<any>(null);
+  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playbackIdRef = useRef<number>(0);
+  const resolvePlaybackRef = useRef<(() => void) | null>(null);
+  const voicesPromiseRef = useRef<Promise<SpeechSynthesisVoice[]> | null>(null);
 
-  const stopAudio = useCallback(() => {
+  const clearPlaybackState = useCallback((resolveCurrent: boolean) => {
     if (safetyTimeoutRef.current) {
       clearTimeout(safetyTimeoutRef.current);
       safetyTimeoutRef.current = null;
@@ -44,14 +64,57 @@ export function useAudio(enabled: boolean) {
 
     setIsPlaying(false);
     setPlayingText(null);
+
+    if (resolveCurrent && resolvePlaybackRef.current) {
+      const resolve = resolvePlaybackRef.current;
+      resolvePlaybackRef.current = null;
+      resolve();
+    }
   }, []);
 
-  const speakText = useCallback((text: string, customSpeed?: number) => {
-    // Immediately stop any active speech or audio stream
+  const stopAudio = useCallback(() => {
+    playbackIdRef.current += 1;
+    clearPlaybackState(true);
+  }, [clearPlaybackState]);
+
+  const loadVoices = useCallback(async (): Promise<SpeechSynthesisVoice[]> => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      return [];
+    }
+
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices();
+    if (voices.length > 0) {
+      return voices;
+    }
+
+    if (!voicesPromiseRef.current) {
+      voicesPromiseRef.current = new Promise<SpeechSynthesisVoice[]>((resolve) => {
+        const timeout = setTimeout(() => {
+          voicesPromiseRef.current = null;
+          resolve(synth.getVoices());
+        }, 250);
+
+        const handleVoicesChanged = () => {
+          clearTimeout(timeout);
+          voicesPromiseRef.current = null;
+          synth.removeEventListener('voiceschanged', handleVoicesChanged);
+          resolve(synth.getVoices());
+        };
+
+        synth.addEventListener('voiceschanged', handleVoicesChanged, { once: true });
+      });
+    }
+
+    return voicesPromiseRef.current;
+  }, []);
+
+  const speakText = useCallback(async (text: string, customSpeed?: number) => {
     stopAudio();
 
     if (!enabled || !text) return;
 
+    const playbackId = ++playbackIdRef.current;
     const activeSpeed = customSpeed || playbackSpeed;
     const lowerText = text.trim().toLowerCase();
     const japaneseChar = ROMAN_TO_HIRAGANA[lowerText] || text;
@@ -59,48 +122,45 @@ export function useAudio(enabled: boolean) {
     setIsPlaying(true);
     setPlayingText(text);
 
-    const handleStop = () => {
-      setIsPlaying(false);
-      setPlayingText(null);
-      if (safetyTimeoutRef.current) {
-        clearTimeout(safetyTimeoutRef.current);
-        safetyTimeoutRef.current = null;
-      }
+    const finishIfCurrent = () => {
+      if (playbackId !== playbackIdRef.current) return;
+      clearPlaybackState(true);
     };
 
-    // 1. Primary Engine: Instant Web Speech API with explicit Japanese locale voice & rate speed
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    const voices = await loadVoices();
+    if (playbackId !== playbackIdRef.current) return;
+
+    const preferredVoice = pickJapaneseVoice(voices);
+
+    // Prefer a real Japanese voice when available. If the browser does not
+    // expose one, fall back to the remote pronunciation audio so the sound
+    // stays natural instead of using a broken default voice.
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window && preferredVoice) {
       try {
-        const utterance = new SpeechSynthesisUtterance(japaneseChar);
-        utterance.lang = 'ja-JP';
-        utterance.rate = Math.min(Math.max(activeSpeed, 0.5), 3.0); // Clamp speed between 0.5x and 3.0x
+        await new Promise<void>((resolve) => {
+          resolvePlaybackRef.current = resolve;
 
-        const voices = window.speechSynthesis.getVoices();
-        const jaVoice = voices.find(v => 
-          v.lang.includes('ja') || 
-          v.lang.includes('JP') || 
-          v.name.toLowerCase().includes('japanese') || 
-          v.name.includes('Haruka') || 
-          v.name.includes('Kyoko') || 
-          v.name.includes('Ayumi')
-        );
-        if (jaVoice) {
-          utterance.voice = jaVoice;
-        }
+          const utterance = new SpeechSynthesisUtterance(japaneseChar);
+          utterance.lang = 'ja-JP';
+          utterance.rate = Math.min(Math.max(activeSpeed, 0.65), 2.0);
+          utterance.voice = preferredVoice;
 
-        utterance.onend = handleStop;
-        utterance.onerror = handleStop;
+          utterance.onend = finishIfCurrent;
+          utterance.onerror = finishIfCurrent;
 
-        window.speechSynthesis.speak(utterance);
+          window.speechSynthesis.speak(utterance);
 
-        // Safety timeout scaled to active speed
-        const timeoutMs = Math.max(400, Math.round(1200 / activeSpeed));
-        safetyTimeoutRef.current = setTimeout(handleStop, timeoutMs);
+          safetyTimeoutRef.current = setTimeout(
+            finishIfCurrent,
+            Math.max(700, Math.round(1800 / activeSpeed))
+          );
+        });
         return;
-      } catch (e) {}
+      } catch (e) {
+        // Fall through to the remote audio path.
+      }
     }
 
-    // 2. Secondary Engine: Cached Audio Stream
     const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(japaneseChar)}&le=jap`;
     let audio = audioCacheRef.current[japaneseChar];
     if (!audio) {
@@ -108,14 +168,19 @@ export function useAudio(enabled: boolean) {
       audioCacheRef.current[japaneseChar] = audio;
     }
 
+    if (playbackId !== playbackIdRef.current) return;
+
     currentAudioRef.current = audio;
     audio.currentTime = 0;
     audio.playbackRate = activeSpeed;
-    audio.onended = handleStop;
-    audio.onerror = handleStop;
-    audio.play().catch(handleStop);
 
-  }, [enabled, playbackSpeed, stopAudio]);
+    await new Promise<void>((resolve) => {
+      resolvePlaybackRef.current = resolve;
+      audio.onended = finishIfCurrent;
+      audio.onerror = finishIfCurrent;
+      audio.play().catch(finishIfCurrent);
+    });
+  }, [enabled, loadVoices, playbackSpeed, stopAudio, clearPlaybackState]);
 
   return {
     speakText,
@@ -126,4 +191,3 @@ export function useAudio(enabled: boolean) {
     setPlaybackSpeed
   };
 }
-

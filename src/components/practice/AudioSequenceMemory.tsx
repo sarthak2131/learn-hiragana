@@ -59,14 +59,19 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
 
     setIsPlayingAudioChain(true);
 
-    for (let i = 0; i < seq.length; i++) {
-      setActiveAudioCharIndex(i);
-      onPlayAudio(seq[i].character);
-      await new Promise((resolve) => setTimeout(resolve, 950));
-    }
+    try {
+      for (let i = 0; i < seq.length; i++) {
+        setActiveAudioCharIndex(i);
+        await Promise.resolve(onPlayAudio(seq[i].character));
 
-    setActiveAudioCharIndex(null);
-    setIsPlayingAudioChain(false);
+        if (i < seq.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
+      }
+    } finally {
+      setActiveAudioCharIndex(null);
+      setIsPlayingAudioChain(false);
+    }
   };
 
   // Tile Selection Handler

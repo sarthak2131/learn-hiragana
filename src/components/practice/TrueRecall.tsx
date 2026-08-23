@@ -23,14 +23,9 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   const [timerPreset, setTimerPreset] = useState<number>(0); // Default Off
   const [timeLeft, setTimeLeft] = useState<number>(0);
   
-  // 3-2-1 Ready Countdown state (Triggers ONLY when user clicks/selects a timer preset for the first time!)
-  const [readyCount, setReadyCount] = useState<number>(0);
-  const hasTriggeredInitialReady = useRef<boolean>(false);
-
   const startedAt = useRef<number>(Date.now());
   const inputRef = useRef<HTMLInputElement | null>(null);
   const timerIntervalRef = useRef<any>(null);
-  const readyIntervalRef = useRef<any>(null);
 
   const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
   const expectedAnswer = isReverse ? question.character.character : question.character.romanization;
@@ -38,64 +33,23 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   // Handle manual selection of timer preset button by user
   const handleSelectTimerPreset = (preset: number) => {
     setTimerPreset(preset);
-    if (preset > 0) {
-      hasTriggeredInitialReady.current = true;
-      setReadyCount(3);
-      setTimeLeft(preset);
-    } else {
-      hasTriggeredInitialReady.current = false;
-      setReadyCount(0);
-      setTimeLeft(0);
-    }
+    setTimeLeft(preset);
+    startedAt.current = Date.now();
+    inputRef.current?.focus();
   };
 
   // Reset input box & timer when question changes — Keeps mobile virtual keyboard OPEN!
   useEffect(() => {
     setValue('');
     setSubmittedResult(null);
-
-    if (timerPreset > 0) {
-      setTimeLeft(timerPreset);
-      if (!hasTriggeredInitialReady.current) {
-        hasTriggeredInitialReady.current = true;
-        setReadyCount(3);
-      } else {
-        setReadyCount(0);
-        startedAt.current = Date.now();
-        inputRef.current?.focus();
-      }
-    } else {
-      setReadyCount(0);
-      setTimeLeft(0);
-      startedAt.current = Date.now();
-      inputRef.current?.focus();
-    }
+    setTimeLeft(timerPreset);
+    startedAt.current = Date.now();
+    inputRef.current?.focus();
   }, [question.id]);
 
-  // 3-2-1 Ready Countdown Interval Ticker
+  // Answer Countdown Ticker
   useEffect(() => {
-    if (readyCount <= 0 || timerPreset <= 0) return;
-
-    readyIntervalRef.current = setInterval(() => {
-      setReadyCount(prev => {
-        if (prev <= 1) {
-          clearInterval(readyIntervalRef.current);
-          startedAt.current = Date.now();
-          inputRef.current?.focus();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 450);
-
-    return () => {
-      if (readyIntervalRef.current) clearInterval(readyIntervalRef.current);
-    };
-  }, [readyCount, timerPreset]);
-
-  // Answer Countdown Ticker (Runs ONLY when readyCount === 0)
-  useEffect(() => {
-    if (timerPreset <= 0 || readyCount > 0 || submittedResult !== null) {
+    if (timerPreset <= 0 || submittedResult !== null) {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       return;
     }
@@ -114,7 +68,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [timerPreset, readyCount, submittedResult, question.id]);
+  }, [timerPreset, submittedResult, question.id]);
 
   const handleTimeOut = () => {
     if (submittedResult) return;
@@ -144,7 +98,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
 
   // Real-time Instant Typing Matcher: As soon as typed string matches correct answer, auto-advance instantly!
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (submittedResult || readyCount > 0) return;
+    if (submittedResult) return;
 
     const newVal = e.target.value;
     setValue(newVal);
@@ -193,7 +147,6 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   };
 
   const handleCheck = () => {
-    if (readyCount > 0) return; // Still in initial 3-2-1 countdown
     if (submittedResult) return; // Already checked
     if (!value.trim()) return;
 
@@ -238,17 +191,18 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
   };
 
   const timerProgressPercent = timerPreset > 0 ? Math.max(0, Math.min(100, (timeLeft / timerPreset) * 100)) : 0;
+  const countdownDisplay = timerPreset > 0 ? Math.max(0, Math.ceil(timeLeft - 0.5)) : 0;
   
   // Show streak milestone badge ONLY on multiples of 3 (3, 6, 9, 12...)
   const isStreakMilestone = consecutiveStreak > 0 && consecutiveStreak % 3 === 0;
 
   return (
-    <section className="max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-fadeIn relative">
+    <section className="max-w-4xl mx-auto rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-4 sm:p-6 lg:p-8 shadow-xl space-y-5 sm:space-y-6 animate-fadeIn relative">
       
-      {/* Top Section Header with Fixed Dimensions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[56px]">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+      {/* Top Section Header with Responsive Controls */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Pure Recall — Memory Challenge</span>
@@ -268,10 +222,10 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
           </h3>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           {/* Countdown Preset Controls (Off, 3s, 5s, 10s, 15s) */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-1 px-1.5 text-xs font-bold text-slate-500">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1 px-1.5 text-xs font-bold text-slate-500 shrink-0">
               <Clock className="w-3.5 h-3.5 text-amber-500" />
             </div>
             {[0, 3, 5, 10, 15].map((preset) => (
@@ -292,7 +246,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
           {/* Fixed Width Play Button */}
           <button
             onClick={handlePlayAudio}
-            className={`w-24 sm:w-28 flex items-center justify-center gap-2 rounded-2xl py-2 text-xs font-extrabold transition-all shrink-0 ${
+            className={`w-full sm:w-auto sm:min-w-[140px] flex items-center justify-center gap-2 rounded-2xl py-2.5 px-4 text-xs font-extrabold transition-all shrink-0 ${
               isPlayingAudio
                 ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 ring-2 ring-amber-500/20'
                 : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-900 hover:bg-amber-100'
@@ -304,35 +258,47 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* 3-2-1 Ready Countdown Animated Banner */}
-      {readyCount > 0 ? (
-        <div className="p-3 rounded-2xl bg-amber-500 text-white font-extrabold text-sm text-center animate-bounce flex items-center justify-center gap-2 shadow-lg">
-          <Zap className="w-5 h-5 text-amber-200 fill-current animate-pulse" />
-          <span>Get Ready! Starting in {readyCount}...</span>
-        </div>
-      ) : (
-        /* Live Countdown Progress Bar (Active when readyCount === 0) */
-        timerPreset > 0 && (
-          <div className="space-y-1">
-            <div className="flex justify-between items-center text-xs font-mono font-extrabold text-slate-500">
-              <span>Countdown Timer</span>
-              <span className="text-rose-600 dark:text-rose-400">{timeLeft.toFixed(1)}s</span>
+      {/* Timer Status Slot Container — Reserved height to prevent layout shifts */}
+      <div className="min-h-[5.5rem] sm:min-h-[5.75rem] w-full flex items-stretch transition-all">
+        {timerPreset > 0 ? (
+          <div
+            className="w-full rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-300/60 shadow-lg shadow-amber-500/20 px-4 py-3 sm:px-5 sm:py-4 flex flex-col justify-center gap-2"
+            aria-live="polite"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3 text-center sm:text-left">
+              <span className="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-[0.18em]">
+                <Zap className="w-4 h-4 shrink-0 text-white/95" />
+                <span>Get Ready!</span>
+              </span>
+              <span className="text-sm sm:text-base font-black whitespace-nowrap">
+                Starting in {countdownDisplay}...
+              </span>
             </div>
-            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-white/25 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-100 ${
-                  timerProgressPercent > 50 ? 'bg-emerald-500' : timerProgressPercent > 20 ? 'bg-amber-500' : 'bg-rose-500'
-                }`}
+                className="h-full rounded-full bg-white transition-all duration-100"
                 style={{ width: `${timerProgressPercent}%` }}
               />
             </div>
           </div>
-        )
-      )}
+        ) : (
+          <div className="w-full rounded-2xl sm:rounded-3xl border border-dashed border-slate-200 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/20 px-4 py-3 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-500">
+            <span className="flex items-center justify-center sm:justify-start gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>
+                Timer: <strong className="text-slate-600 dark:text-slate-300 font-bold">Off</strong> (Self-paced mode)
+              </span>
+            </span>
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold text-center sm:text-right">
+              Select 3s, 5s, 10s or 15s to enable speed timer
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Main Display Prompt Card */}
-      <div className="rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] p-8 sm:p-10 text-center relative group">
-        <div className={`text-8xl sm:text-9xl font-black text-slate-900 dark:text-white ${displayFontClass}`}>
+      <div className="rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] p-6 sm:p-8 lg:p-10 text-center relative group">
+        <div className={`text-[clamp(4.75rem,18vw,7.75rem)] sm:text-8xl lg:text-9xl font-black text-slate-900 dark:text-white leading-none ${displayFontClass}`}>
           {isReverse ? question.character.romanization : question.character.character}
         </div>
         <div className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -342,12 +308,11 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
 
       {/* Input Field & Dynamic Color Action Button — Input stays active so mobile virtual keyboard NEVER closes! */}
       <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch">
           <input
             ref={inputRef}
             type="text"
             value={value}
-            disabled={readyCount > 0}
             onChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -358,23 +323,23 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
                 }
               }
             }}
-            placeholder={readyCount > 0 ? `Get ready... ${readyCount}` : "Type your answer here..."}
-            className="flex-1 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all disabled:opacity-50"
+            placeholder="Type your answer here..."
+            className="flex-1 min-w-0 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] px-5 py-4 text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-all"
           />
 
           {/* Button style changes dynamically based on result (Check vs Correct! vs Next) */}
           {!submittedResult ? (
             <button
               onClick={handleCheck}
-              disabled={!value.trim() || readyCount > 0}
-              className="rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
+              disabled={!value.trim()}
+              className="w-full sm:w-auto sm:min-w-[140px] rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95 shrink-0"
             >
-              {readyCount > 0 ? `${readyCount}...` : 'Check'}
+              Check
             </button>
           ) : submittedResult.isCorrect ? (
             <button
               onClick={handleNext}
-              className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto sm:min-w-[140px] rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shrink-0"
             >
               <span>Correct! 🎉</span>
               <CheckCircle2 className="w-5 h-5" />
@@ -382,7 +347,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
           ) : (
             <button
               onClick={handleNext}
-              className="rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto sm:min-w-[140px] rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-base px-8 py-4 shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shrink-0"
             >
               <span>Next (↵)</span>
               <ArrowRight className="w-5 h-5" />
@@ -391,14 +356,10 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* Result Feedback Banner (Displays Incorrect vs Correct Answer Details) */}
+      {/* Floating Popup Overlay Toast — Appears as an overlay popup without changing page/card height! */}
       {submittedResult && (
-        <div className={`p-5 rounded-2xl border-2 animate-fadeIn transition-all ${
-          submittedResult.isCorrect
-            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-900 dark:text-emerald-200'
-            : 'bg-rose-500/10 border-rose-500 text-rose-900 dark:text-rose-200'
-        }`}>
-          <div className="flex items-start justify-between gap-3">
+        <div className="absolute inset-x-3 -bottom-4 sm:-bottom-6 z-30 p-4 sm:p-5 rounded-2xl border-2 shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-[#151c2ce6] border-slate-200 dark:border-slate-700 animate-fadeIn transition-all transform slide-in-from-bottom-2 duration-200">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               {submittedResult.isCorrect ? (
                 <CheckCircle2 className="w-7 h-7 text-emerald-500 shrink-0" />
@@ -406,7 +367,7 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
                 <XCircle className="w-7 h-7 text-rose-500 shrink-0" />
               )}
               <div>
-                <h4 className="text-base font-extrabold">
+                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
                   {submittedResult.isCorrect
                     ? 'Correct Answer! 🎉'
                     : submittedResult.isTimeOut
@@ -415,34 +376,38 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
                 </h4>
 
                 {!submittedResult.isCorrect ? (
-                  <div className="mt-1.5 space-y-1 text-xs">
+                  <div className="mt-1 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
                     <div>
-                      Your typed answer: <span className="font-mono font-bold line-through text-rose-600 dark:text-rose-400">"{submittedResult.typedAnswer || 'blank'}"</span>
+                      Typed: <span className="font-mono font-bold line-through text-rose-600 dark:text-rose-400">"{submittedResult.typedAnswer || 'blank'}"</span>
+                      {' | '}
+                      Correct: <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">"{expectedAnswer}"</span>
                     </div>
-                    <div>
-                      Correct answer: <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">"{expectedAnswer}"</span>
-                    </div>
-                    {question.character.exampleWord && (
-                      <div className="text-slate-500 dark:text-slate-400 mt-1">
-                        Example: {question.character.exampleWord} ({question.character.exampleMeaning})
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Correct! Advancing to next question...
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Advancing to next question...
                   </div>
                 )}
               </div>
             </div>
 
-            <button
-              onClick={handlePlayAudio}
-              className="p-2 rounded-xl bg-white dark:bg-[#151c2c] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-amber-400"
-              title="Listen sound"
-            >
-              <Volume2 className="w-4 h-4 text-rose-500" />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handlePlayAudio}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-400"
+                title="Listen sound"
+              >
+                <Volume2 className="w-4 h-4 text-rose-500" />
+              </button>
+              {!submittedResult.isCorrect && (
+                <button
+                  onClick={handleNext}
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md hover:scale-105 active:scale-95 transition-all"
+                >
+                  Next (↵)
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
