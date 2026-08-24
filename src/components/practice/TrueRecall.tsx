@@ -258,40 +258,32 @@ export function TrueRecall({ question, activeFont, isReverse = false, onAnswer, 
         </div>
       </div>
 
-      {/* Timer Status Slot Container — Reserved height to prevent layout shifts */}
-      <div className="min-h-[5.5rem] sm:min-h-[5.75rem] w-full flex items-stretch transition-all">
+      {/* Sleek Compact Timer Indicator Slot Container (36px fixed height) */}
+      <div className="h-9 w-full flex items-center justify-center transition-all">
         {timerPreset > 0 ? (
-          <div
-            className="w-full rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-300/60 shadow-lg shadow-amber-500/20 px-4 py-3 sm:px-5 sm:py-4 flex flex-col justify-center gap-2"
-            aria-live="polite"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3 text-center sm:text-left">
-              <span className="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-[0.18em]">
-                <Zap className="w-4 h-4 shrink-0 text-white/95" />
-                <span>Get Ready!</span>
-              </span>
-              <span className="text-sm sm:text-base font-black whitespace-nowrap">
-                Starting in {countdownDisplay}...
-              </span>
+          <div className="w-full h-full rounded-2xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/30 dark:border-amber-500/20 px-4 flex items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2 text-xs font-mono font-extrabold text-slate-800 dark:text-slate-200 shrink-0">
+              <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+              <span className="font-extrabold text-slate-700 dark:text-slate-300">Timer:</span>
+              <span className="text-rose-600 dark:text-rose-400 font-black">{timeLeft.toFixed(1)}s</span>
             </div>
-            <div className="w-full h-1.5 bg-white/25 rounded-full overflow-hidden">
+
+            <div className="flex-1 max-w-[220px] h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
               <div
-                className="h-full rounded-full bg-white transition-all duration-100"
+                className={`h-full rounded-full transition-all duration-100 ${
+                  timerProgressPercent > 50 ? 'bg-emerald-500' : timerProgressPercent > 20 ? 'bg-amber-500' : 'bg-rose-500'
+                }`}
                 style={{ width: `${timerProgressPercent}%` }}
               />
             </div>
           </div>
         ) : (
-          <div className="w-full rounded-2xl sm:rounded-3xl border border-dashed border-slate-200 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/20 px-4 py-3 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-500">
-            <span className="flex items-center justify-center sm:justify-start gap-1.5">
+          <div className="w-full h-full rounded-2xl border border-dashed border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/20 px-4 flex items-center justify-between text-xs font-medium text-slate-400 dark:text-slate-500">
+            <span className="flex items-center gap-1.5 text-[11px]">
               <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span>
-                Timer: <strong className="text-slate-600 dark:text-slate-300 font-bold">Off</strong> (Self-paced mode)
-              </span>
+              <span>Timer: <strong className="text-slate-600 dark:text-slate-300 font-bold">Off</strong></span>
             </span>
-            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold text-center sm:text-right">
-              Select 3s, 5s, 10s or 15s to enable speed timer
-            </span>
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold hidden sm:inline">Select 3s, 5s, 10s or 15s to enable speed timer</span>
           </div>
         )}
       </div>
