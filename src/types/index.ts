@@ -76,14 +76,35 @@ export interface Question {
   correctAnswer: string;
 }
 
+export interface CharacterTimeLog {
+  character: string;
+  romanization: string;
+  timeTakenSec: number;
+  isCorrect: boolean;
+  mode?: string;
+}
+
+export interface BestScoreRecord {
+  highScorePercent: number;
+  bestStreak: number;
+  bestTotalTimeSeconds: number | null;
+  bestAvgTimeSeconds: number | null;
+  totalSessionsCompleted: number;
+}
+
 export interface SessionStats {
   totalQuestions: number;
   correctAnswers: number;
   incorrectAnswers: number;
   scorePercent: number;
+  totalTimeSeconds: number;
   avgTimeSeconds: number;
   bestStreak: number;
   missedCharacters: string[];
+  characterLogs: CharacterTimeLog[];
+  isNewBestScore?: boolean;
+  isNewBestTime?: boolean;
+  allTimeBest?: BestScoreRecord;
 }
 
 export interface MatchPair {

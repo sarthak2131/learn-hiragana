@@ -130,6 +130,7 @@ export const PracticePage: React.FC<PracticePageProps> = ({
         onTryAgain={onStartPractice}
         onChangeSetup={onGoHome}
         onGoHome={onGoHome}
+        onPlayAudio={onPlayAudio}
       />
     );
   }

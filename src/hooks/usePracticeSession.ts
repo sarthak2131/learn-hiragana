@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { HIRAGANA_DATA } from '../data/hiraganaData';
-import { HiraganaCharacter, PracticeMode, Question, SessionStats, FontStyle } from '../types/index';
+import { HiraganaCharacter, PracticeMode, Question, SessionStats, FontStyle, CharacterTimeLog, BestScoreRecord } from '../types/index';
 import { CharacterProgressMap } from './useCharacterProgress';
 
 function shuffle<T>(array: T[]): T[] {
@@ -22,9 +22,11 @@ export function usePracticeSession() {
     correctAnswers: 0,
     incorrectAnswers: 0,
     scorePercent: 0,
+    totalTimeSeconds: 0,
     avgTimeSeconds: 0,
     bestStreak: 0,
-    missedCharacters: []
+    missedCharacters: [],
+    characterLogs: []
   });
 
   const [currentStreak, setCurrentStreak] = useState<number>(0);
@@ -32,6 +34,7 @@ export function usePracticeSession() {
   const [startTime, setStartTime] = useState<number>(0);
   const [missedChars, setMissedChars] = useState<string[]>([]);
   const [responseTimes, setResponseTimes] = useState<number[]>([]);
+  const [charLogs, setCharLogs] = useState<CharacterTimeLog[]>([]);
 
   const startSession = useCallback((
     selectedRowIds: string[],
@@ -141,6 +144,7 @@ export function usePracticeSession() {
     setMaxStreak(0);
     setMissedChars([]);
     setResponseTimes([]);
+    setCharLogs([]);
     setStartTime(Date.now());
   }, []);
 
@@ -148,7 +152,17 @@ export function usePracticeSession() {
     const currentQ = questions[currentIndex];
     if (!currentQ) return;
 
-    setResponseTimes(prev => [...prev, timeTakenSec]);
+    const timeSec = Number(timeTakenSec.toFixed(1));
+    setResponseTimes(prev => [...prev, timeSec]);
+
+    const logEntry: CharacterTimeLog = {
+      character: currentQ.character.character,
+      romanization: currentQ.character.romanization,
+      timeTakenSec: timeSec,
+      isCorrect,
+      mode: currentQ.mode
+    };
+    setCharLogs(prev => [...prev, logEntry]);
 
     if (isCorrect) {
       setCurrentStreak(prev => {
@@ -164,11 +178,11 @@ export function usePracticeSession() {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex(prev => prev + 1);
     } else {
-      finishSession(isCorrect, timeTakenSec);
+      finishSession(isCorrect, timeSec, logEntry);
     }
   }, [questions, currentIndex]);
 
-  const finishSession = useCallback((lastIsCorrect: boolean = true, lastTimeSec: number = 2.0) => {
+  const finishSession = useCallback((lastIsCorrect: boolean = true, lastTimeSec: number = 2.0, lastLog?: CharacterTimeLog) => {
     setIsActive(false);
     setIsCompleted(true);
 
@@ -183,16 +197,64 @@ export function usePracticeSession() {
     const times = [...responseTimes, lastTimeSec];
     const avgTime = times.length > 0 ? Number((times.reduce((a, b) => a + b, 0) / times.length).toFixed(1)) : 2.5;
 
+    const totalTimeSec = startTime > 0 ? Number(((Date.now() - startTime) / 1000).toFixed(1)) : Number((times.reduce((a, b) => a + b, 0)).toFixed(1));
+
+    let finalLogs = [...charLogs];
+    if (lastLog && !charLogs.some(l => l.character === lastLog.character && l.timeTakenSec === lastLog.timeTakenSec)) {
+      finalLogs.push(lastLog);
+    }
+
+    // High Scores & Personal Best Persistence in localStorage
+    const BEST_SCORES_KEY = 'hiragana_best_scores';
+    let savedBest: BestScoreRecord = {
+      highScorePercent: 0,
+      bestStreak: 0,
+      bestTotalTimeSeconds: null,
+      bestAvgTimeSeconds: null,
+      totalSessionsCompleted: 0
+    };
+
+    try {
+      const raw = localStorage.getItem(BEST_SCORES_KEY);
+      if (raw) savedBest = JSON.parse(raw);
+    } catch (e) {
+      // ignore storage parse errors
+    }
+
+    const isNewBestScore = scorePercent > savedBest.highScorePercent;
+    const isNewBestTime = scorePercent === 100 && (savedBest.bestTotalTimeSeconds === null || totalTimeSec < savedBest.bestTotalTimeSeconds);
+
+    const updatedBest: BestScoreRecord = {
+      highScorePercent: Math.max(savedBest.highScorePercent, scorePercent),
+      bestStreak: Math.max(savedBest.bestStreak, maxStreak),
+      bestTotalTimeSeconds: (scorePercent === 100 && (savedBest.bestTotalTimeSeconds === null || totalTimeSec < savedBest.bestTotalTimeSeconds))
+        ? totalTimeSec
+        : savedBest.bestTotalTimeSeconds,
+      bestAvgTimeSeconds: savedBest.bestAvgTimeSeconds === null ? avgTime : Math.min(savedBest.bestAvgTimeSeconds, avgTime),
+      totalSessionsCompleted: savedBest.totalSessionsCompleted + 1
+    };
+
+    try {
+      localStorage.setItem(BEST_SCORES_KEY, JSON.stringify(updatedBest));
+    } catch (e) {
+      // ignore localStorage errors
+    }
+
     setSessionStats({
       totalQuestions: total,
       correctAnswers: correctCount,
       incorrectAnswers: finalMissed.length,
       scorePercent,
+      totalTimeSeconds: totalTimeSec,
       avgTimeSeconds: avgTime,
       bestStreak: maxStreak,
-      missedCharacters: finalMissed
+      missedCharacters: finalMissed,
+      characterLogs: finalLogs,
+      isNewBestScore,
+      isNewBestTime,
+      allTimeBest: updatedBest
     });
-  }, [questions, currentIndex, missedChars, responseTimes, maxStreak]);
+  }, [questions, currentIndex, missedChars, responseTimes, maxStreak, charLogs, startTime]);
 
   const currentQuestion = questions[currentIndex];
 
