@@ -119,38 +119,45 @@ export function SessionResults({
         />
       </div>
 
-      {/* High Scores & All-Time Personal Records Bar */}
-      {stats.allTimeBest && (
+      {/* Category Best Records Bar (Fair comparison for same question count!) */}
+      {stats.categoryBest && (
         <div className="rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 space-y-3">
-          <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-amber-500" />
-              <span>All-Time Best Score Records (Stored)</span>
+              <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Personal Records for {stats.totalQuestions}-Question Sets</span>
             </span>
-            <span className="text-slate-400 dark:text-slate-500">
-              {stats.allTimeBest.totalSessionsCompleted} Sessions Total
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+              Fair Comparison ({stats.categoryBest.totalSessionsCompleted} Runs)
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
             <div className="p-3 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 text-center">
-              <div className="text-[11px] font-bold text-slate-400 uppercase">High Score</div>
-              <div className="text-lg font-black text-amber-600 dark:text-amber-400">
-                {stats.allTimeBest.highScorePercent}%
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Best Score ({stats.totalQuestions} Qs)</div>
+              <div className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                {stats.categoryBest.highScorePercent}%
               </div>
             </div>
 
             <div className="p-3 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 text-center">
-              <div className="text-[11px] font-bold text-slate-400 uppercase">Fastest 100% Run</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Fastest 100% ({stats.totalQuestions} Qs)</div>
               <div className="text-lg font-black text-rose-600 dark:text-rose-400">
-                {stats.allTimeBest.bestTotalTimeSeconds ? formatTime(stats.allTimeBest.bestTotalTimeSeconds) : '—'}
+                {stats.categoryBest.bestTotalTimeSeconds ? formatTime(stats.categoryBest.bestTotalTimeSeconds) : '—'}
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 text-center col-span-2 sm:col-span-1">
-              <div className="text-[11px] font-bold text-slate-400 uppercase">Max Streak</div>
+            <div className="p-3 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 text-center">
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Best Speed / Char</div>
+              <div className="text-lg font-black text-amber-600 dark:text-amber-400">
+                {stats.categoryBest.bestAvgTimeSeconds ? `${stats.categoryBest.bestAvgTimeSeconds.toFixed(1)}s` : '—'}
+              </div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 text-center">
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Max Streak</div>
               <div className="text-lg font-black text-purple-600 dark:text-purple-400">
-                {stats.allTimeBest.bestStreak} 🔥
+                {stats.categoryBest.bestStreak} 🔥
               </div>
             </div>
           </div>

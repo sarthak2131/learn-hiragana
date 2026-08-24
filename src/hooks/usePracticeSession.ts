@@ -204,14 +204,15 @@ export function usePracticeSession() {
       finalLogs.push(lastLog);
     }
 
-    // High Scores & Personal Best Persistence in localStorage
+    // High Scores & Personal Best Persistence in localStorage (Tiered by Question Count)
     const BEST_SCORES_KEY = 'hiragana_best_scores';
     let savedBest: BestScoreRecord = {
       highScorePercent: 0,
       bestStreak: 0,
       bestTotalTimeSeconds: null,
       bestAvgTimeSeconds: null,
-      totalSessionsCompleted: 0
+      totalSessionsCompleted: 0,
+      byQuestionCount: {}
     };
 
     try {
@@ -221,8 +222,37 @@ export function usePracticeSession() {
       // ignore storage parse errors
     }
 
-    const isNewBestScore = scorePercent > savedBest.highScorePercent;
-    const isNewBestTime = scorePercent === 100 && (savedBest.bestTotalTimeSeconds === null || totalTimeSec < savedBest.bestTotalTimeSeconds);
+    if (!savedBest.byQuestionCount) {
+      savedBest.byQuestionCount = {};
+    }
+
+    const prevCategoryBest: QuestionCountBestRecord = savedBest.byQuestionCount[total] || {
+      questionCount: total,
+      highScorePercent: 0,
+      bestStreak: 0,
+      bestTotalTimeSeconds: null,
+      bestAvgTimeSeconds: null,
+      totalSessionsCompleted: 0
+    };
+
+    const isNewBestScore = scorePercent > prevCategoryBest.highScorePercent;
+    const isNewBestTime = scorePercent === 100 && (prevCategoryBest.bestTotalTimeSeconds === null || totalTimeSec < prevCategoryBest.bestTotalTimeSeconds);
+
+    const updatedCategoryBest: QuestionCountBestRecord = {
+      questionCount: total,
+      highScorePercent: Math.max(prevCategoryBest.highScorePercent, scorePercent),
+      bestStreak: Math.max(prevCategoryBest.bestStreak, maxStreak),
+      bestTotalTimeSeconds: (scorePercent === 100 && (prevCategoryBest.bestTotalTimeSeconds === null || totalTimeSec < prevCategoryBest.bestTotalTimeSeconds))
+        ? totalTimeSec
+        : prevCategoryBest.bestTotalTimeSeconds,
+      bestAvgTimeSeconds: prevCategoryBest.bestAvgTimeSeconds === null ? avgTime : Math.min(prevCategoryBest.bestAvgTimeSeconds, avgTime),
+      totalSessionsCompleted: prevCategoryBest.totalSessionsCompleted + 1
+    };
+
+    const updatedByQuestionCount = {
+      ...savedBest.byQuestionCount,
+      [total]: updatedCategoryBest
+    };
 
     const updatedBest: BestScoreRecord = {
       highScorePercent: Math.max(savedBest.highScorePercent, scorePercent),
@@ -231,7 +261,8 @@ export function usePracticeSession() {
         ? totalTimeSec
         : savedBest.bestTotalTimeSeconds,
       bestAvgTimeSeconds: savedBest.bestAvgTimeSeconds === null ? avgTime : Math.min(savedBest.bestAvgTimeSeconds, avgTime),
-      totalSessionsCompleted: savedBest.totalSessionsCompleted + 1
+      totalSessionsCompleted: savedBest.totalSessionsCompleted + 1,
+      byQuestionCount: updatedByQuestionCount
     };
 
     try {
@@ -252,7 +283,8 @@ export function usePracticeSession() {
       characterLogs: finalLogs,
       isNewBestScore,
       isNewBestTime,
-      allTimeBest: updatedBest
+      allTimeBest: updatedBest,
+      categoryBest: updatedCategoryBest
     });
   }, [questions, currentIndex, missedChars, responseTimes, maxStreak, charLogs, startTime]);
 

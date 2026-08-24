@@ -84,12 +84,22 @@ export interface CharacterTimeLog {
   mode?: string;
 }
 
+export interface QuestionCountBestRecord {
+  questionCount: number;
+  highScorePercent: number;
+  bestStreak: number;
+  bestTotalTimeSeconds: number | null;
+  bestAvgTimeSeconds: number | null;
+  totalSessionsCompleted: number;
+}
+
 export interface BestScoreRecord {
   highScorePercent: number;
   bestStreak: number;
   bestTotalTimeSeconds: number | null;
   bestAvgTimeSeconds: number | null;
   totalSessionsCompleted: number;
+  byQuestionCount?: Record<number, QuestionCountBestRecord>;
 }
 
 export interface SessionStats {
@@ -105,6 +115,7 @@ export interface SessionStats {
   isNewBestScore?: boolean;
   isNewBestTime?: boolean;
   allTimeBest?: BestScoreRecord;
+  categoryBest?: QuestionCountBestRecord;
 }
 
 export interface MatchPair {
