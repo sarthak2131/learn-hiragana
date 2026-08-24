@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { HIRAGANA_DATA } from '../data/hiraganaData';
-import { HiraganaCharacter, PracticeMode, Question, SessionStats, FontStyle, CharacterTimeLog, BestScoreRecord } from '../types/index';
+import { HiraganaCharacter, PracticeMode, Question, SessionStats, FontStyle, CharacterTimeLog, BestScoreRecord, QuestionCountBestRecord } from '../types/index';
 import { CharacterProgressMap } from './useCharacterProgress';
 
 function shuffle<T>(array: T[]): T[] {
