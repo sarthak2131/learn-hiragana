@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 
 interface AudioSequenceMemoryProps {
   activeFont: FontStyle;
+  selectedRowIds?: string[];
   onPlayAudio: (text: string) => void;
   onFinish?: () => void;
 }
@@ -22,6 +23,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
   activeFont,
+  selectedRowIds = [],
   onPlayAudio,
 }) => {
   const [sequenceLength, setSequenceLength] = useState<number>(5); // 3, 5, 8, 10
@@ -34,10 +36,26 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
   const [score, setScore] = useState<number>(0);
   const [round, setRound] = useState<number>(1);
 
+  // Filter available character pool based on selected row IDs
+  const characterPool = useMemo(() => {
+    if (!selectedRowIds || selectedRowIds.length === 0) return HIRAGANA_DATA;
+    const filtered = HIRAGANA_DATA.filter(c => selectedRowIds.includes(c.row));
+    return filtered.length > 0 ? filtered : HIRAGANA_DATA;
+  }, [selectedRowIds]);
+
   // Initialize new target sequence
   const initNewSequence = (len: number = sequenceLength) => {
-    const randomPicked = shuffle(HIRAGANA_DATA).slice(0, len);
-    setTargetSequence(randomPicked);
+    const pool = [...characterPool];
+    const sequence: HiraganaCharacter[] = [];
+    const targetLen = Math.min(len, pool.length > 0 ? pool.length : len);
+    
+    // Pick unique characters from pool, or repeat with replacement if sequence requested is larger than pool
+    const shuffledPool = shuffle(pool);
+    for (let i = 0; i < len; i++) {
+      sequence.push(shuffledPool[i % shuffledPool.length]);
+    }
+
+    setTargetSequence(sequence);
     setUserSequence([]);
     setIsCompleted(false);
     setIsWrong(false);
@@ -45,7 +63,7 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
 
   useEffect(() => {
     initNewSequence(sequenceLength);
-  }, [sequenceLength, round]);
+  }, [sequenceLength, round, characterPool]);
 
   // Auto-play audio sequence when target sequence updates
   useEffect(() => {
@@ -62,10 +80,10 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
     try {
       for (let i = 0; i < seq.length; i++) {
         setActiveAudioCharIndex(i);
-        await Promise.resolve(onPlayAudio(seq[i].character));
+        onPlayAudio(seq[i].character);
 
         if (i < seq.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 120));
+          await new Promise((resolve) => setTimeout(resolve, 600));
         }
       }
     } finally {
@@ -109,15 +127,30 @@ export const AudioSequenceMemory: React.FC<AudioSequenceMemoryProps> = ({
     setUserSequence([]);
   };
 
-  // Generate Deck Tiles (Sequence Hiragana + 3 extra distractors)
+  // Generate Deck Tiles (Sequence Hiragana + extra distractors from selected rows / pool)
   const deckTiles = useMemo(() => {
     if (targetSequence.length === 0) return [];
-    const seqCharStrs = targetSequence.map(c => c.character);
-    const distractorPool = HIRAGANA_DATA.filter(c => !seqCharStrs.includes(c.character));
-    const extraDistractors = shuffle(distractorPool).slice(0, 3);
+    const seqCharStrs = new Set(targetSequence.map(c => c.character));
+    const distractorPool = characterPool.filter(c => !seqCharStrs.has(c.character));
     
-    return shuffle([...targetSequence, ...extraDistractors]);
-  }, [targetSequence]);
+    // If pool distractors run out, fall back to overall HIRAGANA_DATA for distractors
+    const backupPool = HIRAGANA_DATA.filter(c => !seqCharStrs.has(c.character));
+    const distractorsToUse = distractorPool.length >= 3 ? distractorPool : backupPool;
+    const extraDistractors = shuffle(distractorsToUse).slice(0, 3);
+    
+    // Unique list of characters for deck tiles
+    const uniqueDeck: HiraganaCharacter[] = [];
+    const seen = new Set<string>();
+
+    for (const c of [...targetSequence, ...extraDistractors]) {
+      if (!seen.has(c.character)) {
+        seen.add(c.character);
+        uniqueDeck.push(c);
+      }
+    }
+    
+    return shuffle(uniqueDeck);
+  }, [targetSequence, characterPool]);
 
   const activeSpokenChar = activeAudioCharIndex !== null ? targetSequence[activeAudioCharIndex] : null;
 

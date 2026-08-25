@@ -19,6 +19,7 @@ function pickJapaneseVoice(voices: SpeechSynthesisVoice[]) {
     const name = voice.name.toLowerCase();
     const lang = voice.lang.toLowerCase();
 
+    // Must strictly match Japanese language code ('ja', 'ja-JP') or authentic Japanese voice names
     return (
       lang.startsWith('ja') ||
       lang.includes('jp') ||
@@ -26,9 +27,34 @@ function pickJapaneseVoice(voices: SpeechSynthesisVoice[]) {
       name.includes('haruka') ||
       name.includes('kyoko') ||
       name.includes('ayumi') ||
-      name.includes('sakura')
+      name.includes('sakura') ||
+      name.includes('nanami') ||
+      name.includes('keita') ||
+      name.includes('naoki') ||
+      name.includes('hina') ||
+      (name.includes('google') && (lang.includes('ja') || name.includes('日本語')))
     );
   }) ?? null;
+}
+
+// Fallback Web Audio API Synthesizer chime for offline / missing audio
+function playWebAudioTone() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch (e) {}
 }
 
 export function useAudio(enabled: boolean) {
@@ -37,23 +63,10 @@ export function useAudio(enabled: boolean) {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const audioCacheRef = useRef<Record<string, HTMLAudioElement>>({});
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
-  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playbackIdRef = useRef<number>(0);
-  const resolvePlaybackRef = useRef<(() => void) | null>(null);
   const voicesPromiseRef = useRef<Promise<SpeechSynthesisVoice[]> | null>(null);
 
-  const clearPlaybackState = useCallback((resolveCurrent: boolean) => {
-    if (safetyTimeoutRef.current) {
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
-    }
-
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch (e) {}
-    }
-
+  const clearPlaybackState = useCallback(() => {
     if (currentAudioRef.current) {
       try {
         currentAudioRef.current.pause();
@@ -61,20 +74,13 @@ export function useAudio(enabled: boolean) {
       } catch (e) {}
       currentAudioRef.current = null;
     }
-
     setIsPlaying(false);
     setPlayingText(null);
-
-    if (resolveCurrent && resolvePlaybackRef.current) {
-      const resolve = resolvePlaybackRef.current;
-      resolvePlaybackRef.current = null;
-      resolve();
-    }
   }, []);
 
   const stopAudio = useCallback(() => {
     playbackIdRef.current += 1;
-    clearPlaybackState(true);
+    clearPlaybackState();
   }, [clearPlaybackState]);
 
   const loadVoices = useCallback(async (): Promise<SpeechSynthesisVoice[]> => {
@@ -93,7 +99,7 @@ export function useAudio(enabled: boolean) {
         const timeout = setTimeout(() => {
           voicesPromiseRef.current = null;
           resolve(synth.getVoices());
-        }, 250);
+        }, 150);
 
         const handleVoicesChanged = () => {
           clearTimeout(timeout);
@@ -123,48 +129,53 @@ export function useAudio(enabled: boolean) {
     setPlayingText(text);
 
     const finishIfCurrent = () => {
-      if (playbackId !== playbackIdRef.current) return;
-      clearPlaybackState(true);
+      if (playbackId === playbackIdRef.current) {
+        setIsPlaying(false);
+        setPlayingText(null);
+      }
     };
 
-    const voices = await loadVoices();
-    if (playbackId !== playbackIdRef.current) return;
-
-    const preferredVoice = pickJapaneseVoice(voices);
-
-    // Prefer a real Japanese voice when available. If the browser does not
-    // expose one, fall back to the remote pronunciation audio so the sound
-    // stays natural instead of using a broken default voice.
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window && preferredVoice) {
+    // 1. Check Web Speech API first
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
-        await new Promise<void>((resolve) => {
-          resolvePlaybackRef.current = resolve;
+        const synth = window.speechSynthesis;
+        if (synth.paused) {
+          synth.resume();
+        }
 
+        const voices = await loadVoices();
+        if (playbackId !== playbackIdRef.current) return;
+
+        const preferredVoice = pickJapaneseVoice(voices);
+
+        if (preferredVoice) {
           const utterance = new SpeechSynthesisUtterance(japaneseChar);
           utterance.lang = 'ja-JP';
-          utterance.rate = Math.min(Math.max(activeSpeed, 0.65), 2.0);
+          utterance.rate = Math.min(Math.max(activeSpeed, 0.7), 1.8);
           utterance.voice = preferredVoice;
 
           utterance.onend = finishIfCurrent;
           utterance.onerror = finishIfCurrent;
 
-          window.speechSynthesis.speak(utterance);
+          synth.speak(utterance);
 
-          safetyTimeoutRef.current = setTimeout(
-            finishIfCurrent,
-            Math.max(700, Math.round(1800 / activeSpeed))
-          );
-        });
-        return;
+          // Fast safety timeout to ensure state doesn't freeze
+          setTimeout(finishIfCurrent, Math.max(500, Math.round(1200 / activeSpeed)));
+          return;
+        }
       } catch (e) {
-        // Fall through to the remote audio path.
+        // Fall through to HTML5 Audio fallback
       }
     }
 
-    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(japaneseChar)}&le=jap`;
+    // 2. High Quality Fast HTML5 Audio Fallback (Google Translate TTS + Youdao fallback)
+    const primaryUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(japaneseChar)}&tl=ja&client=tw-ob`;
+    const secondaryUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(japaneseChar)}&le=jap`;
+
     let audio = audioCacheRef.current[japaneseChar];
     if (!audio) {
-      audio = new Audio(audioUrl);
+      audio = new Audio(primaryUrl);
+      audio.preload = 'auto';
       audioCacheRef.current[japaneseChar] = audio;
     }
 
@@ -174,13 +185,51 @@ export function useAudio(enabled: boolean) {
     audio.currentTime = 0;
     audio.playbackRate = activeSpeed;
 
-    await new Promise<void>((resolve) => {
-      resolvePlaybackRef.current = resolve;
-      audio.onended = finishIfCurrent;
-      audio.onerror = finishIfCurrent;
-      audio.play().catch(finishIfCurrent);
+    let finished = false;
+    const handleDone = () => {
+      if (!finished) {
+        finished = true;
+        finishIfCurrent();
+      }
+    };
+
+    audio.onended = handleDone;
+    audio.onerror = () => {
+      // Try secondary endpoint if primary Google TTS fails
+      if (!finished) {
+        const secAudio = new Audio(secondaryUrl);
+        currentAudioRef.current = secAudio;
+        secAudio.onended = handleDone;
+        secAudio.onerror = () => {
+          playWebAudioTone();
+          handleDone();
+        };
+        secAudio.play().catch(() => {
+          playWebAudioTone();
+          handleDone();
+        });
+      }
+    };
+
+    audio.play().catch(() => {
+      // If play blocked or network error, trigger secondary or tone fallback
+      const secAudio = new Audio(secondaryUrl);
+      currentAudioRef.current = secAudio;
+      secAudio.onended = handleDone;
+      secAudio.onerror = () => {
+        playWebAudioTone();
+        handleDone();
+      };
+      secAudio.play().catch(() => {
+        playWebAudioTone();
+        handleDone();
+      });
     });
-  }, [enabled, loadVoices, playbackSpeed, stopAudio, clearPlaybackState]);
+
+    // Safety timeout so audio state is never stuck playing
+    setTimeout(handleDone, 1200);
+
+  }, [enabled, loadVoices, playbackSpeed, stopAudio]);
 
   return {
     speakText,

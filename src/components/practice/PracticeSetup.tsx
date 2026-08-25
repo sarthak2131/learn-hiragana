@@ -208,27 +208,42 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
       {/* 3. Settings (Question Count & Font Style) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         
-        {/* Question Count Selection */}
-        <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-            Question Count
+        {/* Dynamic Question Count or Game Deck Info */}
+        {['read-it', 'build-it', 'true-false', 'ear-training', 'pure-recall', 'speed-recall', 'mixed-challenge'].includes(selectedMode) ? (
+          <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center justify-between">
+              <span>Question Count</span>
+              <span className="text-xs text-rose-500 font-bold">{questionCount} Questions</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {countOptions.map(cnt => (
+                <button
+                  key={cnt}
+                  onClick={() => onSelectQuestionCount(cnt)}
+                  className={`py-3 rounded-2xl border-2 text-xs font-extrabold transition-all ${
+                    questionCount === cnt
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/20'
+                      : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-400'
+                  }`}
+                >
+                  {cnt} Qs
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-4 gap-2">
-            {countOptions.map(cnt => (
-              <button
-                key={cnt}
-                onClick={() => onSelectQuestionCount(cnt)}
-                className={`py-3 rounded-2xl border-2 text-xs font-extrabold transition-all ${
-                  questionCount === cnt
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/20'
-                    : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-400'
-                }`}
-              >
-                {cnt} Qs
-              </button>
-            ))}
+        ) : (
+          <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2 flex flex-col justify-center">
+            <div className="text-xs font-extrabold uppercase tracking-widest text-rose-600 dark:text-rose-400">
+              Game Mode Configuration
+            </div>
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+              {gameModes.find(g => g.id === selectedMode)?.title} Mode
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Deck size and targets are automatically generated from your selected character rows ({selectedRowIds.length} rows active).
+            </p>
           </div>
-        </div>
+        )}
 
         {/* Font Style Selection */}
         <div className="bg-white dark:bg-[#151c2c] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -253,6 +268,30 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
           </div>
         </div>
 
+      </div>
+
+      {/* Prominent Bottom Start Practice Session Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-[#151c2c] to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <div className="text-xs font-extrabold uppercase tracking-widest text-rose-400 flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Configuration Complete</span>
+          </div>
+          <h3 className="text-xl sm:text-2xl font-black mt-1">
+            Ready to Start {gameModes.find(g => g.id === selectedMode)?.title}?
+          </h3>
+          <p className="text-xs text-slate-400 mt-1">
+            {selectedRowIds.length} Character Rows Selected • {currentFont.toUpperCase()} Font Style
+          </p>
+        </div>
+
+        <button
+          onClick={onStartPractice}
+          className="w-full sm:w-auto px-10 py-4.5 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-black text-lg shadow-xl shadow-rose-500/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 shrink-0"
+        >
+          <span>Start Practice Session</span>
+          <Play className="w-6 h-6 fill-current" />
+        </button>
       </div>
 
     </div>

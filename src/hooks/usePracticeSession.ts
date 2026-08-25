@@ -105,18 +105,18 @@ export function usePracticeSession() {
       let options: string[] = [];
       let correctAnswer = '';
 
+      const poolDistractors = pool.filter(c => c.character !== targetChar.character);
+      const fallbackDistractors = HIRAGANA_DATA.filter(c => c.character !== targetChar.character);
+      const effectiveDistractorChars = poolDistractors.length >= 3 ? poolDistractors : fallbackDistractors;
+
       if (currentQuestionMode === 'read-it' || currentQuestionMode === 'char-to-sound' || currentQuestionMode === 'speed-recall') {
         correctAnswer = targetChar.romanization;
-        const distractorPool = HIRAGANA_DATA
-          .filter(c => c.romanization !== targetChar.romanization)
-          .map(c => c.romanization);
+        const distractorPool = effectiveDistractorChars.map(c => c.romanization);
         const wrongOptions = shuffle(distractorPool).slice(0, 3);
         options = shuffle([correctAnswer, ...wrongOptions]);
       } else if (currentQuestionMode === 'build-it' || currentQuestionMode === 'sound-to-char' || currentQuestionMode === 'ear-training') {
         correctAnswer = targetChar.character;
-        const distractorPool = HIRAGANA_DATA
-          .filter(c => c.character !== targetChar.character)
-          .map(c => c.character);
+        const distractorPool = effectiveDistractorChars.map(c => c.character);
         const wrongOptions = shuffle(distractorPool).slice(0, 3);
         options = shuffle([correctAnswer, ...wrongOptions]);
       } else {
@@ -148,11 +148,19 @@ export function usePracticeSession() {
     setStartTime(Date.now());
   }, []);
 
+  const quitSession = useCallback(() => {
+    setIsActive(false);
+    setIsCompleted(false);
+    setQuestions([]);
+    setCurrentIndex(0);
+  }, []);
+
   const recordQuestionResult = useCallback((isCorrect: boolean, timeTakenSec: number = 2.0) => {
     const currentQ = questions[currentIndex];
     if (!currentQ) return;
 
-    const timeSec = Number(timeTakenSec.toFixed(1));
+    // Cap question response time at 12s max to ignore idle time
+    const timeSec = Math.min(Math.max(Number(timeTakenSec.toFixed(1)), 0.5), 12.0);
     setResponseTimes(prev => [...prev, timeSec]);
 
     const logEntry: CharacterTimeLog = {
@@ -194,10 +202,12 @@ export function usePracticeSession() {
     const correctCount = total - finalMissed.length;
     const scorePercent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     
-    const times = [...responseTimes, lastTimeSec];
+    const cappedLastTime = Math.min(Math.max(lastTimeSec, 0.5), 12.0);
+    const times = [...responseTimes, cappedLastTime];
     const avgTime = times.length > 0 ? Number((times.reduce((a, b) => a + b, 0) / times.length).toFixed(1)) : 2.5;
 
-    const totalTimeSec = startTime > 0 ? Number(((Date.now() - startTime) / 1000).toFixed(1)) : Number((times.reduce((a, b) => a + b, 0)).toFixed(1));
+    // Active session time calculated from active per-question response times (ignoring long idle pauses)
+    const totalTimeSec = Number((times.reduce((a, b) => a + b, 0)).toFixed(1));
 
     let finalLogs = [...charLogs];
     if (lastLog && !charLogs.some(l => l.character === lastLog.character && l.timeTakenSec === lastLog.timeTakenSec)) {
@@ -301,6 +311,7 @@ export function usePracticeSession() {
     maxStreak,
     startSession,
     recordQuestionResult,
-    finishSession
+    finishSession,
+    quitSession
   };
 }

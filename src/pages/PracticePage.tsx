@@ -50,6 +50,7 @@ interface PracticePageProps {
   onStartPractice: () => void;
   onRecordResult: (isCorrect: boolean, timeTakenSec: number) => void;
   onFinishSession: () => void;
+  onQuitSession: () => void;
   onPlayAudio: (text: string) => void;
   onGoHome: () => void;
   onPracticeMistakes: () => void;
@@ -82,6 +83,7 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   onStartPractice,
   onRecordResult,
   onFinishSession,
+  onQuitSession,
   onPlayAudio,
   onGoHome,
   onPracticeMistakes,
@@ -141,15 +143,16 @@ export const PracticePage: React.FC<PracticePageProps> = ({
       <div className="space-y-4">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <button
-            onClick={onGoHome}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            onClick={onQuitSession}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Exit Audio Sequence Memory</span>
+            <span>Exit Audio Sequence Memory & Setup New Game</span>
           </button>
         </div>
         <AudioSequenceMemory
           activeFont={currentFont}
+          selectedRowIds={selectedRowIds}
           onPlayAudio={onPlayAudio}
           onFinish={() => onFinishSession()}
         />
@@ -162,11 +165,11 @@ export const PracticePage: React.FC<PracticePageProps> = ({
       <div className="space-y-4">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <button
-            onClick={onGoHome}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            onClick={onQuitSession}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Exit Match Up</span>
+            <span>Exit Match Up & Setup New Game</span>
           </button>
         </div>
         <MatchGame
@@ -184,15 +187,16 @@ export const PracticePage: React.FC<PracticePageProps> = ({
       <div className="space-y-4">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <button
-            onClick={onGoHome}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            onClick={onQuitSession}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Exit Spot the Difference</span>
+            <span>Exit Spot Difference & Setup New Game</span>
           </button>
         </div>
         <SimilarCharacterGame
           currentFont={currentFont}
+          selectedRowIds={selectedRowIds}
           onChangeFont={onSelectFont}
           onPlayAudio={onPlayAudio}
           onFinish={() => onFinishSession()}
@@ -213,11 +217,12 @@ export const PracticePage: React.FC<PracticePageProps> = ({
       {/* Top Question Progress Header */}
       <div className="flex items-center justify-between gap-4 bg-white dark:bg-[#151c2c] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <button
-          onClick={onGoHome}
-          className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-          title="Quit Session"
+          onClick={onQuitSession}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white text-xs font-extrabold transition-all shrink-0"
+          title="Quit session and return to studio setup"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
+          <span className="hidden sm:inline">Quit / Setup New</span>
         </button>
 
         <div className="flex-1 flex flex-col items-center">

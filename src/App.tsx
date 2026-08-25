@@ -59,7 +59,8 @@ export function App() {
     sessionStats,
     startSession,
     recordQuestionResult,
-    finishSession
+    finishSession,
+    quitSession
   } = usePracticeSession();
 
   // Selected Rows for Practice (Default A, K, S, T)
@@ -82,6 +83,9 @@ export function App() {
   });
 
   const changeTab = (newTab: TabId) => {
+    if (newTab === 'practice' && activeTab !== 'practice' && isActive) {
+      quitSession();
+    }
     setActiveTabState(newTab);
     window.history.pushState({ tab: newTab }, '', `#/${newTab}`);
   };
@@ -248,8 +252,15 @@ export function App() {
             onStartPractice={() => handleStartPracticeSession()}
             onRecordResult={handleRecordAnswerResult}
             onFinishSession={finishSession}
+            onQuitSession={() => {
+              quitSession();
+              changeTab('practice');
+            }}
             onPlayAudio={speakText}
-            onGoHome={() => changeTab('home')}
+            onGoHome={() => {
+              quitSession();
+              changeTab('home');
+            }}
             onPracticeMistakes={handleStartMistakeReview}
             progressMap={progressMap}
           />

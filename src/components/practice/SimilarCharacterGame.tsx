@@ -5,6 +5,7 @@ import type { FontStyle } from '../../types';
 
 interface SimilarCharacterGameProps {
   currentFont: FontStyle;
+  selectedRowIds?: string[];
   onChangeFont: (font: FontStyle) => void;
   onPlayAudio: (text: string) => void;
   onFinish: () => void;
@@ -18,12 +19,22 @@ const fontFamilies: Record<FontStyle, string> = {
 
 export function SimilarCharacterGame({
   currentFont,
+  selectedRowIds = [],
   onChangeFont,
   onPlayAudio,
   onFinish,
 }: SimilarCharacterGameProps) {
   const [index, setIndex] = useState(0);
-  const pair = useMemo(() => SIMILAR_CHARACTER_PAIRS[index % SIMILAR_CHARACTER_PAIRS.length], [index]);
+
+  const availablePairs = useMemo(() => {
+    if (!selectedRowIds || selectedRowIds.length === 0) return SIMILAR_CHARACTER_PAIRS;
+    const filtered = SIMILAR_CHARACTER_PAIRS.filter(
+      p => (p.char1 && selectedRowIds.includes(p.char1.row)) || (p.char2 && selectedRowIds.includes(p.char2.row))
+    );
+    return filtered.length > 0 ? filtered : SIMILAR_CHARACTER_PAIRS;
+  }, [selectedRowIds]);
+
+  const pair = useMemo(() => availablePairs[index % availablePairs.length], [availablePairs, index]);
 
   return (
     <section className="rounded-3xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm space-y-5">
