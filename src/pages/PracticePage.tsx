@@ -141,67 +141,73 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   // 3. Render Standalone Full-Session Modes (Sequence Memory, Match Up, Spot Difference)
   if (selectedMode === 'sequence-memory') {
     return (
-      <div className="space-y-2 py-0">
-        <div className="flex justify-between items-center max-w-2xl mx-auto">
+      <div className="space-y-3 py-1 flex flex-col min-h-[calc(100vh-140px)] justify-between">
+        <div className="flex justify-between items-center max-w-2xl mx-auto w-full">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4 text-[#66765B]" />
             <span>Exit Game & Setup New</span>
           </button>
         </div>
-        <AudioSequenceMemory
-          activeFont={currentFont}
-          selectedRowIds={selectedRowIds}
-          onPlayAudio={onPlayAudio}
-          onFinish={() => onFinishSession()}
-        />
+        <div className="flex-1 flex flex-col justify-center">
+          <AudioSequenceMemory
+            activeFont={currentFont}
+            selectedRowIds={selectedRowIds}
+            onPlayAudio={onPlayAudio}
+            onFinish={() => onFinishSession()}
+          />
+        </div>
       </div>
     );
   }
 
   if (selectedMode === 'match-up' || selectedMode === 'match') {
     return (
-      <div className="space-y-2 py-0">
-        <div className="flex justify-between items-center max-w-xl mx-auto">
+      <div className="space-y-3 py-1 flex flex-col min-h-[calc(100vh-140px)] justify-between">
+        <div className="flex justify-between items-center max-w-xl mx-auto w-full">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4 text-[#66765B]" />
             <span>Exit Match Up & Setup New</span>
           </button>
         </div>
-        <MatchGame
-          activeFont={currentFont}
-          selectedRowIds={selectedRowIds}
-          onPlayAudio={onPlayAudio}
-          onFinish={() => onFinishSession()}
-        />
+        <div className="flex-1 flex flex-col justify-center">
+          <MatchGame
+            activeFont={currentFont}
+            selectedRowIds={selectedRowIds}
+            onPlayAudio={onPlayAudio}
+            onFinish={() => onFinishSession()}
+          />
+        </div>
       </div>
     );
   }
 
   if (selectedMode === 'spot-difference' || selectedMode === 'similar') {
     return (
-      <div className="space-y-2 py-0">
-        <div className="flex justify-between items-center max-w-xl mx-auto">
+      <div className="space-y-3 py-1 flex flex-col min-h-[calc(100vh-140px)] justify-between">
+        <div className="flex justify-between items-center max-w-xl mx-auto w-full">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4 text-[#66765B]" />
             <span>Exit Spot Difference & Setup New</span>
           </button>
         </div>
-        <SimilarCharacterGame
-          currentFont={currentFont}
-          selectedRowIds={selectedRowIds}
-          onChangeFont={onSelectFont}
-          onPlayAudio={onPlayAudio}
-          onFinish={() => onFinishSession()}
-        />
+        <div className="flex-1 flex flex-col justify-center">
+          <SimilarCharacterGame
+            currentFont={currentFont}
+            selectedRowIds={selectedRowIds}
+            onChangeFont={onSelectFont}
+            onPlayAudio={onPlayAudio}
+            onFinish={() => onFinishSession()}
+          />
+        </div>
       </div>
     );
   }
@@ -213,24 +219,24 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   const qMode = currentQuestion.mode;
 
   return (
-    <div className="max-w-xl mx-auto space-y-2 max-sm:space-y-1.5 py-0 animate-pageTransition">
+    <div className="max-w-xl mx-auto flex flex-col min-h-[calc(100vh-140px)] justify-between space-y-3 py-1 animate-pageTransition">
       
       {/* Top Question Progress Header */}
-      <div className="flex items-center justify-between gap-3 bg-[#FFFDF8] p-2.5 sm:p-3 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)]">
+      <div className="flex items-center justify-between gap-3 bg-[#FFFDF8] p-3 sm:p-4 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] shrink-0">
         <button
           onClick={onQuitSession}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#F4F1E9] border border-[#DDD7CB] text-[#6F716C] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] text-[11px] font-extrabold transition-all shrink-0 shadow-xs"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F4F1E9] border border-[#DDD7CB] text-[#6F716C] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] text-xs font-extrabold transition-all shrink-0 shadow-xs"
           title="Quit session and return to studio setup"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4" />
           <span className="hidden sm:inline">Quit / Setup New</span>
         </button>
 
         <div className="flex-1 flex flex-col items-center max-w-xs mx-auto">
-          <div className="text-[11px] font-bold text-[#30312F] mb-0.5">
+          <div className="text-xs font-bold text-[#30312F] mb-1">
             Question {currentIndex + 1} of {totalQuestions}
           </div>
-          <div className="w-full h-1.5 bg-[#E8E4DA] rounded-full overflow-hidden border border-[#E6E0D4]">
+          <div className="w-full h-2 bg-[#E8E4DA] rounded-full overflow-hidden border border-[#E6E0D4]">
             <div
               className="h-full bg-[#8B9B7A] rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
@@ -238,89 +244,91 @@ export const PracticePage: React.FC<PracticePageProps> = ({
           </div>
         </div>
 
-        <span className="text-[10px] font-black text-[#66765B] bg-[#E5EBDD] border border-[#CCD6C2] px-2.5 py-0.5 rounded-full">
+        <span className="text-xs font-black text-[#66765B] bg-[#E5EBDD] border border-[#CCD6C2] px-3 py-1 rounded-full">
           {progressPercent}%
         </span>
       </div>
 
-      {/* Render Active Question Subcomponent */}
-      {(qMode === 'read-it' || qMode === 'char-to-sound') && (
-        <CharacterToSound
-          question={currentQuestion}
-          activeFont={currentFont}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+      {/* Render Active Question Subcomponent (Stretches Vertically to Fill Screen) */}
+      <div className="flex-1 flex flex-col justify-center my-auto">
+        {(qMode === 'read-it' || qMode === 'char-to-sound') && (
+          <CharacterToSound
+            question={currentQuestion}
+            activeFont={currentFont}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
 
-      {(qMode === 'build-it' || qMode === 'sound-to-char') && (
-        <SoundToCharacter
-          question={currentQuestion}
-          activeFont={currentFont}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+        {(qMode === 'build-it' || qMode === 'sound-to-char') && (
+          <SoundToCharacter
+            question={currentQuestion}
+            activeFont={currentFont}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
 
-      {qMode === 'true-false' && (
-        <TrueFalseGame
-          question={currentQuestion}
-          activeFont={currentFont}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+        {qMode === 'true-false' && (
+          <TrueFalseGame
+            question={currentQuestion}
+            activeFont={currentFont}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
 
-      {qMode === 'ear-training' && (
-        <EarTraining
-          question={currentQuestion}
-          activeFont={currentFont}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+        {qMode === 'ear-training' && (
+          <EarTraining
+            question={currentQuestion}
+            activeFont={currentFont}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
 
-      {(qMode === 'pure-recall' || qMode === 'true-recall') && (
-        <TrueRecall
-          question={currentQuestion}
-          activeFont={currentFont}
-          isReverse={false}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+        {(qMode === 'pure-recall' || qMode === 'true-recall') && (
+          <TrueRecall
+            question={currentQuestion}
+            activeFont={currentFont}
+            isReverse={false}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
 
-      {(qMode === 'write-it' || qMode === 'writing') && (
-        <WritingCanvas
-          question={currentQuestion}
-          activeFont={currentFont}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-          onOpenStrokeGuide={() => setActiveStrokeChar(currentQuestion.character)}
-        />
-      )}
+        {(qMode === 'write-it' || qMode === 'writing') && (
+          <WritingCanvas
+            question={currentQuestion}
+            activeFont={currentFont}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+            onOpenStrokeGuide={() => setActiveStrokeChar(currentQuestion.character)}
+          />
+        )}
 
-      {qMode === 'speed-recall' && (
-        <SpeedRecall
-          question={currentQuestion}
-          activeFont={currentFont}
-          difficulty={difficulty}
-          onAnswer={onRecordResult}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+        {qMode === 'speed-recall' && (
+          <SpeedRecall
+            question={currentQuestion}
+            activeFont={currentFont}
+            difficulty={difficulty}
+            onAnswer={onRecordResult}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
 
-      {qMode === 'flashcard' && (
-        <Flashcard
-          question={currentQuestion}
-          activeFont={currentFont}
-          onAnswer={(_, time) => onRecordResult(true, time)}
-          onPlayAudio={onPlayAudio}
-        />
-      )}
+        {qMode === 'flashcard' && (
+          <Flashcard
+            question={currentQuestion}
+            activeFont={currentFont}
+            onAnswer={(_, time) => onRecordResult(true, time)}
+            onPlayAudio={onPlayAudio}
+          />
+        )}
+      </div>
 
-      {/* Contextual Learning Tip (Hidden on small mobile screens to prevent scrolling during active game) */}
-      <div className="hidden sm:block">
+      {/* Contextual Learning Tip at Bottom */}
+      <div className="shrink-0">
         <LearningTip tipText={currentTip} />
       </div>
 

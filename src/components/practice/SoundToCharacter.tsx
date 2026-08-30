@@ -44,12 +44,12 @@ export const SoundToCharacter: React.FC<SoundToCharacterProps> = ({
   const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
 
   return (
-    <div className="max-w-xl mx-auto space-y-2.5 py-0 animate-pageTransition">
+    <div className="max-w-xl mx-auto w-full space-y-3.5 flex flex-col justify-between py-1 animate-pageTransition">
       
       {/* Top Question Header */}
-      <div className="bg-[#FFFDF8] p-3 sm:p-4 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-3">
+      <div className="bg-[#FFFDF8] p-3.5 sm:p-4 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-3">
         <div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-[#66765B] px-2 py-0.5 rounded-full bg-[#E5EBDD] border border-[#CCD6C2]">
+          <span className="text-[9px] font-black uppercase tracking-widest text-[#66765B] px-2.5 py-0.5 rounded-full bg-[#E5EBDD] border border-[#CCD6C2]">
             BUILD IT — SOUND TO CHARACTER
           </span>
           <h3 className="text-xs sm:text-sm font-extrabold text-[#30312F] mt-1">
@@ -59,7 +59,7 @@ export const SoundToCharacter: React.FC<SoundToCharacterProps> = ({
 
         <button
           onClick={() => onPlayAudio(question.character.character)}
-          className="p-2.5 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-all hover:scale-105 shadow-xs"
+          className="p-2.5 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-all hover:scale-105 shadow-xs shrink-0"
           title="Play Audio"
         >
           <Volume2 className="w-4 h-4" />
@@ -67,17 +67,17 @@ export const SoundToCharacter: React.FC<SoundToCharacterProps> = ({
       </div>
 
       {/* Hero Sound Display Panel */}
-      <div className="bg-[#FFFDF8] border border-[#E6E0D4] p-3 sm:p-5 rounded-2xl shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex flex-col items-center justify-center text-center space-y-1">
-        <div className="text-4xl sm:text-6xl font-mono font-black text-[#30312F] uppercase tracking-wider">
+      <div className="bg-[#FFFDF8] border border-[#E6E0D4] p-6 sm:p-10 rounded-2xl shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex flex-col items-center justify-center text-center space-y-2 min-h-[160px] sm:min-h-[220px]">
+        <div className="text-5xl sm:text-7xl font-mono font-black text-[#30312F] uppercase tracking-wider">
           "{question.character.romanization}"
         </div>
-        <div className="text-[11px] text-[#6F716C]">
+        <div className="text-xs text-[#6F716C] font-semibold">
           Listen to sound and pick matching Hiragana
         </div>
       </div>
 
       {/* 2x2 Answer Grid (Hiragana Character Choices) */}
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-3">
         {question.options.map((option) => {
           const isSelected = selectedOption === option;
           const isCorrect = option === question.correctAnswer;
@@ -99,7 +99,7 @@ export const SoundToCharacter: React.FC<SoundToCharacterProps> = ({
               key={option}
               disabled={isSubmitted}
               onClick={() => handleSelect(option)}
-              className={`p-3.5 sm:p-5 rounded-2xl border flex items-center justify-center transition-all duration-200 text-3xl sm:text-5xl font-black ${displayFontClass} ${btnStyle}`}
+              className={`p-4 sm:p-5 min-h-[64px] sm:min-h-[76px] rounded-2xl border flex items-center justify-center transition-all duration-200 text-4xl sm:text-5xl font-black ${displayFontClass} ${btnStyle}`}
             >
               <span>{option}</span>
               {isSubmitted && isCorrect && isSelected && (
