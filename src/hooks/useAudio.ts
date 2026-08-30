@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 // Mapping from Romanization to Japanese Hiragana Character
 const ROMAN_TO_HIRAGANA: Record<string, string> = {
@@ -19,7 +19,6 @@ function pickJapaneseVoice(voices: SpeechSynthesisVoice[]) {
     const name = voice.name.toLowerCase();
     const lang = voice.lang.toLowerCase();
 
-    // Must strictly match Japanese language code ('ja', 'ja-JP') or authentic Japanese voice names
     return (
       lang.startsWith('ja') ||
       lang.includes('jp') ||
@@ -37,7 +36,7 @@ function pickJapaneseVoice(voices: SpeechSynthesisVoice[]) {
   }) ?? null;
 }
 
-// Fallback Web Audio API Synthesizer chime for offline / missing audio
+// Fallback Web Audio API chime for offline / missing audio
 function playWebAudioTone() {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -47,13 +46,13 @@ function playWebAudioTone() {
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(440, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + 0.25);
+    osc.stop(ctx.currentTime + 0.2);
   } catch (e) {}
 }
 
@@ -61,12 +60,39 @@ export function useAudio(enabled: boolean) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playingText, setPlayingText] = useState<string | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+
   const audioCacheRef = useRef<Record<string, HTMLAudioElement>>({});
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const playbackIdRef = useRef<number>(0);
-  const voicesPromiseRef = useRef<Promise<SpeechSynthesisVoice[]> | null>(null);
+  const lastPlayRef = useRef<{ text: string; time: number }>({ text: '', time: 0 });
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+
+  // Pre-load Web Speech voices on mount so there is zero delay when invoked
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const updateVoices = () => {
+      try {
+        voicesRef.current = window.speechSynthesis.getVoices();
+      } catch (e) {}
+    };
+
+    updateVoices();
+
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+    }
+  }, []);
 
   const clearPlaybackState = useCallback(() => {
+    // 1. Instantly cancel any ongoing or queued Web Speech Synthesis utterances
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+    }
+
+    // 2. Pause and reset current HTML5 audio element
     if (currentAudioRef.current) {
       try {
         currentAudioRef.current.pause();
@@ -74,6 +100,7 @@ export function useAudio(enabled: boolean) {
       } catch (e) {}
       currentAudioRef.current = null;
     }
+
     setIsPlaying(false);
     setPlayingText(null);
   }, []);
@@ -83,50 +110,29 @@ export function useAudio(enabled: boolean) {
     clearPlaybackState();
   }, [clearPlaybackState]);
 
-  const loadVoices = useCallback(async (): Promise<SpeechSynthesisVoice[]> => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      return [];
-    }
-
-    const synth = window.speechSynthesis;
-    const voices = synth.getVoices();
-    if (voices.length > 0) {
-      return voices;
-    }
-
-    if (!voicesPromiseRef.current) {
-      voicesPromiseRef.current = new Promise<SpeechSynthesisVoice[]>((resolve) => {
-        const timeout = setTimeout(() => {
-          voicesPromiseRef.current = null;
-          resolve(synth.getVoices());
-        }, 150);
-
-        const handleVoicesChanged = () => {
-          clearTimeout(timeout);
-          voicesPromiseRef.current = null;
-          synth.removeEventListener('voiceschanged', handleVoicesChanged);
-          resolve(synth.getVoices());
-        };
-
-        synth.addEventListener('voiceschanged', handleVoicesChanged, { once: true });
-      });
-    }
-
-    return voicesPromiseRef.current;
-  }, []);
-
   const speakText = useCallback(async (text: string, customSpeed?: number) => {
-    stopAudio();
-
     if (!enabled || !text) return;
+
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    // Prevent rapid duplicate trigger for same text within 120ms (prevents double audio echo)
+    const now = Date.now();
+    if (lastPlayRef.current.text === trimmed && (now - lastPlayRef.current.time) < 120) {
+      return;
+    }
+    lastPlayRef.current = { text: trimmed, time: now };
+
+    // Stop all previous audio & cancel any queued speech synthesis immediately
+    stopAudio();
 
     const playbackId = ++playbackIdRef.current;
     const activeSpeed = customSpeed || playbackSpeed;
-    const lowerText = text.trim().toLowerCase();
-    const japaneseChar = ROMAN_TO_HIRAGANA[lowerText] || text;
+    const lowerText = trimmed.toLowerCase();
+    const japaneseChar = ROMAN_TO_HIRAGANA[lowerText] || trimmed;
 
     setIsPlaying(true);
-    setPlayingText(text);
+    setPlayingText(trimmed);
 
     const finishIfCurrent = () => {
       if (playbackId === playbackIdRef.current) {
@@ -135,40 +141,7 @@ export function useAudio(enabled: boolean) {
       }
     };
 
-    // 1. Check Web Speech API first
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        const synth = window.speechSynthesis;
-        if (synth.paused) {
-          synth.resume();
-        }
-
-        const voices = await loadVoices();
-        if (playbackId !== playbackIdRef.current) return;
-
-        const preferredVoice = pickJapaneseVoice(voices);
-
-        if (preferredVoice) {
-          const utterance = new SpeechSynthesisUtterance(japaneseChar);
-          utterance.lang = 'ja-JP';
-          utterance.rate = Math.min(Math.max(activeSpeed, 0.7), 1.8);
-          utterance.voice = preferredVoice;
-
-          utterance.onend = finishIfCurrent;
-          utterance.onerror = finishIfCurrent;
-
-          synth.speak(utterance);
-
-          // Fast safety timeout to ensure state doesn't freeze
-          setTimeout(finishIfCurrent, Math.max(500, Math.round(1200 / activeSpeed)));
-          return;
-        }
-      } catch (e) {
-        // Fall through to HTML5 Audio fallback
-      }
-    }
-
-    // 2. High Quality Fast HTML5 Audio Fallback (Google Translate TTS + Youdao fallback)
+    // 1. Primary Ultra-Fast Audio: Pre-cached HTML5 Audio (Zero delay, instant playback)
     const primaryUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(japaneseChar)}&tl=ja&client=tw-ob`;
     const secondaryUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(japaneseChar)}&le=jap`;
 
@@ -178,8 +151,6 @@ export function useAudio(enabled: boolean) {
       audio.preload = 'auto';
       audioCacheRef.current[japaneseChar] = audio;
     }
-
-    if (playbackId !== playbackIdRef.current) return;
 
     currentAudioRef.current = audio;
     audio.currentTime = 0;
@@ -195,41 +166,72 @@ export function useAudio(enabled: boolean) {
 
     audio.onended = handleDone;
     audio.onerror = () => {
-      // Try secondary endpoint if primary Google TTS fails
-      if (!finished) {
-        const secAudio = new Audio(secondaryUrl);
-        currentAudioRef.current = secAudio;
-        secAudio.onended = handleDone;
-        secAudio.onerror = () => {
-          playWebAudioTone();
-          handleDone();
-        };
-        secAudio.play().catch(() => {
-          playWebAudioTone();
-          handleDone();
-        });
-      }
-    };
+      if (playbackId !== playbackIdRef.current) return;
 
-    audio.play().catch(() => {
-      // If play blocked or network error, trigger secondary or tone fallback
+      // Try secondary endpoint if primary fails
       const secAudio = new Audio(secondaryUrl);
       currentAudioRef.current = secAudio;
       secAudio.onended = handleDone;
       secAudio.onerror = () => {
-        playWebAudioTone();
-        handleDone();
+        // Fallback to Web Speech API or WebAudio chime
+        tryWebSpeechFallback(japaneseChar, activeSpeed, playbackId, finishIfCurrent);
       };
       secAudio.play().catch(() => {
-        playWebAudioTone();
-        handleDone();
+        tryWebSpeechFallback(japaneseChar, activeSpeed, playbackId, finishIfCurrent);
       });
-    });
+    };
 
-    // Safety timeout so audio state is never stuck playing
-    setTimeout(handleDone, 1200);
+    // Play HTML5 Audio instantly
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        if (playbackId !== playbackIdRef.current) return;
+        tryWebSpeechFallback(japaneseChar, activeSpeed, playbackId, finishIfCurrent);
+      });
+    }
 
-  }, [enabled, loadVoices, playbackSpeed, stopAudio]);
+    // Safety timeout to reset state
+    setTimeout(handleDone, Math.max(400, Math.round(1200 / activeSpeed)));
+
+  }, [enabled, playbackSpeed, stopAudio]);
+
+  const tryWebSpeechFallback = (
+    japaneseChar: string, 
+    activeSpeed: number, 
+    playbackId: number, 
+    onFinish: () => void
+  ) => {
+    if (playbackId !== playbackIdRef.current) return;
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        const synth = window.speechSynthesis;
+        synth.cancel(); // Clear queue to avoid double audio
+
+        const voices = voicesRef.current.length > 0 ? voicesRef.current : synth.getVoices();
+        const preferredVoice = pickJapaneseVoice(voices);
+
+        const utterance = new SpeechSynthesisUtterance(japaneseChar);
+        utterance.lang = 'ja-JP';
+        utterance.rate = Math.min(Math.max(activeSpeed, 0.7), 1.8);
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onend = () => {
+          if (playbackId === playbackIdRef.current) onFinish();
+        };
+        utterance.onerror = () => {
+          if (playbackId === playbackIdRef.current) onFinish();
+        };
+
+        synth.speak(utterance);
+        return;
+      } catch (e) {}
+    }
+
+    // Last resort fallback chime
+    playWebAudioTone();
+    onFinish();
+  };
 
   return {
     speakText,

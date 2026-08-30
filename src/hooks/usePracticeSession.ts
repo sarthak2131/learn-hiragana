@@ -105,19 +105,29 @@ export function usePracticeSession() {
       let options: string[] = [];
       let correctAnswer = '';
 
-      const poolDistractors = pool.filter(c => c.character !== targetChar.character);
-      const fallbackDistractors = HIRAGANA_DATA.filter(c => c.character !== targetChar.character);
-      const effectiveDistractorChars = poolDistractors.length >= 3 ? poolDistractors : fallbackDistractors;
+      // Get wrong distractor choices strictly from selected rows pool
+      const getWrongDistractors = (extractFn: (c: HiraganaCharacter) => string, targetVal: string): string[] => {
+        const poolVals = pool.map(extractFn).filter(val => val !== targetVal);
+        const uniqueVals = Array.from(new Set(poolVals));
+        if (uniqueVals.length === 0) {
+          const fallbackVals = HIRAGANA_DATA.map(extractFn).filter(val => val !== targetVal);
+          return shuffle(fallbackVals).slice(0, 3);
+        }
+        const shuffled = shuffle(uniqueVals);
+        const res: string[] = [];
+        for (let idx = 0; idx < 3; idx++) {
+          res.push(shuffled[idx % shuffled.length]);
+        }
+        return res;
+      };
 
-      if (currentQuestionMode === 'read-it' || currentQuestionMode === 'char-to-sound' || currentQuestionMode === 'speed-recall') {
+      if (currentQuestionMode === 'read-it' || currentQuestionMode === 'char-to-sound' || currentQuestionMode === 'speed-recall' || currentQuestionMode === 'true-false') {
         correctAnswer = targetChar.romanization;
-        const distractorPool = effectiveDistractorChars.map(c => c.romanization);
-        const wrongOptions = shuffle(distractorPool).slice(0, 3);
+        const wrongOptions = getWrongDistractors(c => c.romanization, targetChar.romanization);
         options = shuffle([correctAnswer, ...wrongOptions]);
       } else if (currentQuestionMode === 'build-it' || currentQuestionMode === 'sound-to-char' || currentQuestionMode === 'ear-training') {
         correctAnswer = targetChar.character;
-        const distractorPool = effectiveDistractorChars.map(c => c.character);
-        const wrongOptions = shuffle(distractorPool).slice(0, 3);
+        const wrongOptions = getWrongDistractors(c => c.character, targetChar.character);
         options = shuffle([correctAnswer, ...wrongOptions]);
       } else {
         correctAnswer = targetChar.romanization;

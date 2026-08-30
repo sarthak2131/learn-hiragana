@@ -3,26 +3,59 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+  --bg: #F5F7FF;
+  --page: #F8F9FD;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --surface-interactive: #F4F5FF;
+  --border: #D9DDF0;
+  --border-hover: #B8BDE0;
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-pressed: #3730A3;
+  --primary-soft: #EEF2FF;
+  --primary-selected: #E8EAFF;
+  --text: #151827;
+  --text-secondary: #475069;
+  --text-muted: #69738A;
+  --text-disabled: #A0A7B8;
+  --error: #B42318;
+}
+
+html.dark {
+  color-scheme: dark;
+  --bg: #080A12;
+  --page: #0B0E18;
+  --surface: #111522;
+  --surface-elevated: #171C2D;
+  --surface-interactive: #0D1120;
+  --border: #252B40;
+  --border-hover: #343B58;
+  --primary: #6366F1;
+  --primary-hover: #818CF8;
+  --primary-pressed: #4F46E5;
+  --primary-soft: rgba(99, 102, 241, 0.10);
+  --primary-selected: rgba(99, 102, 241, 0.14);
+  --text: #F8FAFC;
+  --text-secondary: #A8B0C2;
+  --text-muted: #737D94;
+  --text-disabled: #4B5568;
+  --error: #EF4444;
 }
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--bg);
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  font-family: 'Inter', 'Noto Sans JP', system-ui, sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(251, 113, 133, 0.10), transparent 30%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-}
-
-.dark body {
-  background:
-    radial-gradient(circle at top, rgba(251, 113, 133, 0.12), transparent 30%),
-    linear-gradient(180deg, #0b0f19 0%, #111827 100%);
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 250ms ease, color 250ms ease;
 }
 
 * {
@@ -32,6 +65,84 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Solid Monochromatic Indigo Button */
+.btn-indigo-primary {
+  background-color: #4F46E5;
+  color: #FFFFFF;
+  font-weight: 800;
+  border-radius: 10px;
+  transition: all 180ms ease;
+}
+
+.dark .btn-indigo-primary {
+  background-color: #6366F1;
+  color: #FFFFFF;
+}
+
+.btn-indigo-primary:hover {
+  background-color: #4338CA;
+  transform: translateY(-1px);
+}
+
+.dark .btn-indigo-primary:hover {
+  background-color: #818CF8;
+  transform: translateY(-1px);
+}
+
+.btn-indigo-primary:active {
+  transform: scale(0.98);
+}
+
+/* Keyframe Animations */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pageTransition {
+  animation: pageFadeIn 220ms ease-out forwards;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 300ms ease-in-out;
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 200ms ease-out forwards;
+}
+
+@keyframes equalizer {
+  0%, 100% { height: 4px; }
+  50% { height: 14px; }
+}
+
+.animate-equalizer-1 {
+  animation: equalizer 600ms ease-in-out infinite;
+}
+.animate-equalizer-2 {
+  animation: equalizer 600ms ease-in-out 150ms infinite;
+}
+.animate-equalizer-3 {
+  animation: equalizer 600ms ease-in-out 300ms infinite;
 }
 
 /* Prevent mobile viewport pull-to-refresh & page bounce on freehand canvas */
@@ -50,3 +161,10 @@ canvas {
   scrollbar-width: none;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

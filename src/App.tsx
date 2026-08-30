@@ -183,7 +183,7 @@ export function App() {
   const overallStats = getOverallStats();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-[#0b0f19] dark:text-slate-100 font-sans transition-colors duration-200 pb-20 md:pb-8">
+    <div className="min-h-screen flex flex-col bg-[#F5F7FF] text-[#151827] dark:bg-[#080A12] dark:text-[#F8FAFC] font-sans transition-colors duration-250 pb-20 md:pb-8">
       
       {/* Sticky Header */}
       <Header

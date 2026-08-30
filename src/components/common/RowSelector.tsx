@@ -1,4 +1,4 @@
-import { Check, Square } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { HIRAGANA_ROWS } from '../../data/hiraganaData';
 import type { FontStyle } from '../../types';
 
@@ -18,54 +18,53 @@ export function RowSelector({
   currentFont,
 }: RowSelectorProps) {
   return (
-    <section className="bg-white dark:bg-[#151c2c] rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <section className="bg-white dark:bg-[#111522] rounded-2xl p-5 sm:p-6 border border-[#D9DDF0] dark:border-[#252B40] shadow-xs space-y-4 transition-colors duration-200">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Choose Rows</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Select the kana sets you want to study.</p>
+          <h3 className="text-base font-extrabold text-[#151827] dark:text-[#F8FAFC]">Select Character Rows</h3>
+          <p className="text-xs text-[#475069] dark:text-[#A8B0C2]">Select the kana sets you want to study ({selectedRowIds.length} active).</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 text-xs font-bold">
           <button
             onClick={onSelectAll}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-xs font-bold"
+            className="text-[#4F46E5] dark:text-[#818CF8] hover:underline"
           >
-            All
+            Select All
           </button>
+          <span className="text-[#69738A] dark:text-[#343B58]">|</span>
           <button
             onClick={onClearAll}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-xs font-bold"
+            className="text-[#69738A] dark:text-[#737D94] hover:underline"
           >
-            Clear
+            Clear All
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {HIRAGANA_ROWS.map((row) => {
           const selected = selectedRowIds.includes(row.id);
           return (
             <button
               key={row.id}
               onClick={() => onToggleRow(row.id)}
-              className={`rounded-2xl border p-4 text-left transition-all ${
+              className={`p-3.5 rounded-xl transition-all text-left flex items-center justify-between ${
                 selected
-                  ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 ring-2 ring-rose-500/20'
-                  : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700'
+                  ? 'bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.08)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#151827] dark:text-[#F8FAFC]'
+                  : 'bg-[#F4F5FF] dark:bg-[#0D1120] border border-[#D9DDF0] dark:border-[#252B40] text-[#475069] dark:text-[#A8B0C2] hover:border-[#B8BDE0] dark:hover:border-[#343B58]'
               }`}
             >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                    Row {row.name}
-                  </div>
-                  <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">{row.label}</div>
-                </div>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${selected ? 'bg-rose-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-400'}`}>
-                  {selected ? <Check className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+              <div>
+                <div className="text-[10px] font-extrabold uppercase text-[#69738A] dark:text-[#737D94]">ROW {row.name}</div>
+                <div className="text-base font-bold text-[#151827] dark:text-[#F8FAFC] mt-0.5" style={{ fontFamily: currentFont }}>
+                  {row.label}
                 </div>
               </div>
-              <div className="mt-3 text-sm text-slate-500 dark:text-slate-400" style={{ fontFamily: currentFont }}>
-                {row.characters.map((char) => char.character).join(' ')}
+
+              <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                selected ? 'bg-[#4F46E5] dark:bg-[#6366F1] border-[#4F46E5] dark:border-[#6366F1] text-white' : 'border-[#D9DDF0] dark:border-[#343B58] bg-white dark:bg-[#0D1120]'
+              }`}>
+                {selected && <Check className="w-3 h-3 stroke-[3]" />}
               </div>
             </button>
           );
