@@ -183,10 +183,16 @@ export function App() {
   const overallStats = getOverallStats();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F3EA] bg-[url('/japanese_paper_bg.jpg')] bg-fixed bg-cover bg-center text-[#30312F] font-sans transition-colors duration-250 pb-20 md:pb-8 relative">
+    <div className="min-h-screen flex flex-col bg-[#F7F3EA] text-[#30312F] font-sans transition-colors duration-250 pb-20 md:pb-8 relative">
       
-      <Header
-        currentFont={font}
+      {/* 100% Reliable Fixed Background Image Layer (Mobile: japanese_paper_bg_mobile.jpg, Desktop: japanese_paper_bg.jpg) */}
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat bg-[url('/japanese_paper_bg_mobile.jpg')] sm:bg-[url('/japanese_paper_bg.jpg')]"
+      />
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header
+          currentFont={font}
         onOpenFontSelector={() => setIsFontSelectorOpen(true)}
         streakCount={streakData.currentStreak}
         todayCount={streakData.todayQuestionCount}
@@ -342,6 +348,7 @@ export function App() {
         />
       )}
 
+      </div>
     </div>
   );
 }

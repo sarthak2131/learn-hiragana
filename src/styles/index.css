@@ -74,6 +74,16 @@ body {
   transition: background-color 250ms ease, color 250ms ease;
 }
 
+/* RESPONSIVE MOBILE JAPANESE PAPER PORTRAIT BACKGROUND */
+@media (max-width: 640px) {
+  body {
+    background-image: url('/japanese_paper_bg_mobile.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center center;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
