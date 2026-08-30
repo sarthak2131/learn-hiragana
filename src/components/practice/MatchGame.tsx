@@ -47,11 +47,9 @@ export const MatchGame: React.FC<MatchGameProps> = ({
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(5);
 
-  // Drag & Drop State
   const [draggedTile, setDraggedTile] = useState<TileItem | null>(null);
   const [dragOverTileId, setDragOverTileId] = useState<string | null>(null);
 
-  // Initialize Game Board
   const initGame = () => {
     let pool = HIRAGANA_DATA.filter(c => selectedRowIds.includes(c.row));
     if (pool.length === 0) pool = HIRAGANA_DATA;
@@ -79,7 +77,6 @@ export const MatchGame: React.FC<MatchGameProps> = ({
     let shuffledH = shuffle(hTiles);
     let shuffledS = shuffle(sTiles);
 
-    // Prevent identical index matching by row position
     for (let i = 0; i < shuffledH.length; i++) {
       if (shuffledH[i].charId === shuffledS[i].charId && shuffledS.length > 1) {
         const swapIdx = (i + 1) % shuffledS.length;
@@ -105,7 +102,6 @@ export const MatchGame: React.FC<MatchGameProps> = ({
     initGame();
   }, [selectedRowIds]);
 
-  // Timer interval
   useEffect(() => {
     if (isGameOver || totalCount === 0) return;
     const timer = setInterval(() => setSeconds(s => s + 1), 1000);
@@ -116,7 +112,6 @@ export const MatchGame: React.FC<MatchGameProps> = ({
     setMoves(m => m + 1);
 
     if (hTile.charId === sTile.charId) {
-      // CORRECT MATCH (Indigo Monochromatic Success)
       setJustMatchedPair({ hId: hTile.id, sId: sTile.id });
       setSelectedHiragana(null);
       setSelectedSound(null);
@@ -126,7 +121,7 @@ export const MatchGame: React.FC<MatchGameProps> = ({
           const updated = [...prev, hTile.charId];
           if (updated.length === totalCount) {
             setIsGameOver(true);
-            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#6366F1', '#818CF8', '#4F46E5'] });
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#8B9B7A', '#66765B', '#DCE4D4'] });
           }
           return updated;
         });
@@ -134,7 +129,6 @@ export const MatchGame: React.FC<MatchGameProps> = ({
       }, 350);
 
     } else {
-      // INCORRECT MATCH (Restrained Red Shake)
       setWrongPair({ hId: hTile.id, sId: sTile.id });
       setTimeout(() => {
         setSelectedHiragana(null);
@@ -170,7 +164,6 @@ export const MatchGame: React.FC<MatchGameProps> = ({
     }
   };
 
-  // Drag & Drop Handlers
   const handleDragStart = (e: React.DragEvent, tile: TileItem) => {
     if (matchedCharIds.includes(tile.charId)) {
       e.preventDefault();
@@ -230,50 +223,48 @@ export const MatchGame: React.FC<MatchGameProps> = ({
 
   const formattedTime = seconds < 10 ? `0${seconds}s` : `${seconds}s`;
 
-  // VICTORY SCREEN (Monochromatic Indigo Celebration)
   if (isGameOver) {
     return (
-      <div className="max-w-xl mx-auto space-y-6 py-6 animate-pageTransition">
-        <div className="bg-white dark:bg-[#111522] text-[#151827] dark:text-[#F8FAFC] p-8 sm:p-10 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-xl text-center space-y-6 transition-colors duration-200">
-          <Trophy className="w-14 h-14 mx-auto text-[#4F46E5] dark:text-[#6366F1] animate-bounce" />
+      <div className="max-w-md mx-auto space-y-4 py-2 animate-pageTransition">
+        <div className="bg-[#FFFDF8] text-[#30312F] p-6 sm:p-8 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] text-center space-y-4 transition-colors duration-200">
+          <Trophy className="w-10 h-10 mx-auto text-[#D9AE58] animate-bounce" />
           <div>
-            <span className="px-3.5 py-1 rounded-full bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.10)] text-[#4F46E5] dark:text-[#818CF8] text-xs font-extrabold uppercase tracking-widest border border-[#4F46E5]/20 dark:border-[#6366F1]/30">
+            <span className="px-3 py-0.5 rounded-full bg-[#E5EBDD] text-[#66765B] text-[10px] font-extrabold uppercase tracking-widest border border-[#CCD6C2]">
               ✓ Perfect Match!
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black mt-3">
+            <h2 className="text-xl sm:text-2xl font-black mt-2">
               You matched all {totalCount} Hiragana.
             </h2>
-            <p className="text-xs text-[#475069] dark:text-[#A8B0C2] mt-2">
-              Time: <span className="text-[#151827] dark:text-white font-mono font-bold">{formattedTime}</span> &nbsp;|&nbsp; Moves: <span className="text-[#151827] dark:text-white font-bold">{moves}</span>
+            <p className="text-xs text-[#6F716C] mt-1">
+              Time: <span className="text-[#30312F] font-mono font-bold">{formattedTime}</span> &nbsp;|&nbsp; Moves: <span className="text-[#30312F] font-bold">{moves}</span>
             </p>
           </div>
 
-          {/* Completed Pairs Grid */}
-          <div className="bg-[#F4F5FF] dark:bg-[#0D1120] p-4 rounded-xl border border-[#D9DDF0] dark:border-[#252B40] space-y-2 text-left">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-[#475069] dark:text-[#A8B0C2] flex items-center justify-between">
+          <div className="bg-[#F4F1E9] p-3 rounded-xl border border-[#DDD7CB] space-y-1.5 text-left">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#6F716C] flex items-center justify-between">
               <span>Matched Pairs</span>
-              <span className="text-[10px] text-[#69738A] dark:text-[#737D94]">Tap to hear audio</span>
+              <span className="text-[9px] text-[#96978F]">Tap to hear audio</span>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               {completedPairs.map(charObj => (
                 <button
                   key={charObj.id}
                   onClick={() => onPlayAudio(charObj.character)}
-                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#171C2D] hover:bg-slate-100 dark:hover:bg-[#171C2D]/80 text-[#151827] dark:text-white border border-[#D9DDF0] dark:border-[#343B58] transition-all flex items-center gap-2 text-xs font-extrabold hover:scale-105 shadow-xs"
+                  className="px-2.5 py-1 rounded-lg bg-[#FFFDF8] hover:bg-[#F0EEE6] text-[#30312F] border border-[#DDD7CB] transition-all flex items-center gap-1.5 text-xs font-bold hover:scale-105 shadow-xs"
                 >
-                  <span className={`text-base font-black ${FONT_CLASSES[activeFont]}`}>{charObj.character}</span>
-                  <ArrowRightLeft className="w-3 h-3 text-[#4F46E5] dark:text-[#6366F1]" />
+                  <span className={`text-sm font-black ${FONT_CLASSES[activeFont]}`}>{charObj.character}</span>
+                  <ArrowRightLeft className="w-3 h-3 text-[#66765B]" />
                   <span className="font-mono text-xs">"{charObj.romanization}"</span>
-                  <Volume2 className="w-3.5 h-3.5 text-[#69738A] dark:text-[#737D94]" />
+                  <Volume2 className="w-3 h-3 text-[#6F716C]" />
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-2 pt-1">
             <button
               onClick={initGame}
-              className="w-full sm:w-auto px-7 py-3 rounded-lg bg-[#4F46E5] dark:bg-[#6366F1] hover:bg-[#4338CA] dark:hover:bg-[#818CF8] text-white font-black text-xs shadow-md shadow-[#4F46E5]/20 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#8B9B7A] hover:bg-[#66765B] text-[#FFFDF8] font-bold text-xs shadow-xs hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Play Again</span>
@@ -281,7 +272,7 @@ export const MatchGame: React.FC<MatchGameProps> = ({
             {onFinish && (
               <button
                 onClick={onFinish}
-                className="w-full sm:w-auto px-7 py-3 rounded-lg bg-[#F4F5FF] dark:bg-[#171C2D] hover:bg-slate-200 dark:hover:bg-[#171C2D]/80 text-[#151827] dark:text-[#F8FAFC] font-bold text-xs border border-[#D9DDF0] dark:border-[#343B58] transition-all hover:scale-105 active:scale-95"
+                className="px-6 py-2.5 rounded-xl bg-[#FFFDF8] hover:bg-[#F0EEE6] text-[#30312F] font-bold text-xs border border-[#D8D3C8] transition-all hover:scale-105 active:scale-95"
               >
                 Back to Practice
               </button>
@@ -293,85 +284,51 @@ export const MatchGame: React.FC<MatchGameProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 py-2 animate-pageTransition select-none">
+    <div className="max-w-xl mx-auto space-y-3 py-0 animate-pageTransition select-none">
       
       {/* Top Header HUD Panel */}
-      <div className="bg-white dark:bg-[#111522] p-5 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-xs space-y-4 transition-colors duration-200">
-        
-        {/* Title & HUD Stats Row */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-black text-[#151827] dark:text-[#F8FAFC] tracking-tight">
-              MATCH THE HIRAGANA
-            </h2>
-            <p className="text-xs text-[#475069] dark:text-[#A8B0C2] mt-0.5">
-              Select a character and match it with its sound. You can also drag a character onto its sound.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-xs font-bold text-[#475069] dark:text-[#A8B0C2] flex items-center gap-2 bg-[#F4F5FF] dark:bg-[#0D1120] px-3 py-1.5 rounded-lg border border-[#D9DDF0] dark:border-[#252B40]">
-              <span>TIME <span className="font-mono text-[#4F46E5] dark:text-[#6366F1] font-black">{formattedTime}</span></span>
-              <span className="text-[#D9DDF0] dark:text-[#343B58]">•</span>
-              <span>MOVES <span className="text-[#4F46E5] dark:text-[#6366F1] font-black">{moves}</span></span>
-            </div>
-
-            <button
-              onClick={initGame}
-              className="p-2 rounded-lg bg-[#F4F5FF] dark:bg-[#0D1120] hover:bg-slate-200 dark:hover:bg-[#171C2D] text-[#475069] dark:text-[#A8B0C2] hover:text-[#151827] dark:hover:text-white border border-[#D9DDF0] dark:border-[#252B40] transition-colors"
-              title="Reset Round"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-          </div>
+      <div className="bg-[#FFFDF8] p-3.5 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-3 transition-colors duration-200">
+        <div>
+          <h2 className="text-base font-black text-[#30312F] tracking-tight">
+            MATCH THE HIRAGANA
+          </h2>
+          <p className="text-[11px] text-[#6F716C]">
+            Select or drag a character onto its matching sound.
+          </p>
         </div>
 
-        {/* Instruction & Progress Indicator */}
-        <div className="pt-3 border-t border-[#D9DDF0] dark:border-[#252B40] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="text-[#475069] dark:text-[#A8B0C2]">
-            <span className="font-bold text-[#151827] dark:text-[#F8FAFC]">Select a character, then select its sound.</span>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="text-xs font-bold text-[#6F716C] flex items-center gap-1.5 bg-[#F4F1E9] px-2.5 py-1 rounded-lg border border-[#DDD7CB]">
+            <span>TIME <span className="font-mono text-[#66765B] font-black">{formattedTime}</span></span>
+            <span className="text-[#DDD7CB]">•</span>
+            <span>MOVES <span className="text-[#66765B] font-black">{moves}</span></span>
           </div>
 
-          {/* Progress Indicator */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="font-mono font-black text-[#4F46E5] dark:text-[#6366F1] text-xs">
-              {matchedCharIds.length} / {totalCount} matched
-            </span>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalCount }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx < matchedCharIds.length
-                      ? 'bg-[#4F46E5] dark:bg-[#6366F1] scale-110 shadow-xs'
-                      : 'bg-[#F4F5FF] dark:bg-[#0D1120] border border-[#D9DDF0] dark:border-[#252B40]'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+          <button
+            onClick={initGame}
+            className="p-1.5 rounded-lg bg-[#F4F1E9] hover:bg-[#F0EEE6] text-[#6F716C] hover:text-[#30312F] border border-[#DDD7CB] transition-colors"
+            title="Reset Round"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
         </div>
-
       </div>
 
-      {/* Central Monochromatic Indigo Game Board */}
-      <div className="bg-white dark:bg-[#111522] p-6 sm:p-8 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-md space-y-4 transition-colors duration-200">
-        
-        {/* Column Headers */}
-        <div className="grid grid-cols-2 gap-6 pb-2 border-b border-[#D9DDF0] dark:border-[#252B40] text-xs font-black uppercase tracking-widest">
-          <div className="text-[#4F46E5] dark:text-[#6366F1] text-center sm:text-left sm:pl-2">
+      {/* Central Board */}
+      <div className="bg-[#FFFDF8] p-4 sm:p-5 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] space-y-2.5 transition-colors duration-200">
+        <div className="grid grid-cols-2 gap-4 pb-1.5 border-b border-[#E6E0D4] text-[11px] font-black uppercase tracking-widest">
+          <div className="text-[#66765B] text-center sm:text-left sm:pl-2">
             HIRAGANA
           </div>
-          <div className="text-[#4F46E5] dark:text-[#818CF8] text-center sm:text-left sm:pl-2">
+          <div className="text-[#66765B] text-center sm:text-left sm:pl-2">
             SOUND
           </div>
         </div>
 
-        {/* Interactive Rows */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 min-h-[280px] items-start relative">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 items-start relative">
           
           {/* Left Column: Hiragana Tiles */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {remainingHiragana.map(tile => {
               const isSelected = selectedHiragana?.id === tile.id;
               const isWrong = wrongPair?.hId === tile.id;
@@ -379,18 +336,18 @@ export const MatchGame: React.FC<MatchGameProps> = ({
               const isDragging = draggedTile?.id === tile.id;
               const isTargetDrop = dragOverTileId === tile.id;
 
-              let style = "bg-[#F4F5FF] dark:bg-[#0D1120] border-[#D9DDF0] dark:border-[#252B40] text-[#151827] dark:text-[#F8FAFC] hover:border-[#B8BDE0] dark:hover:border-[#343B58] hover:bg-white dark:hover:bg-[#111522] hover:scale-[1.02] shadow-xs cursor-pointer";
+              let style = "bg-[#FFFDF8] border-[#E6E0D4] text-[#30312F] hover:border-[#B7C4AA] hover:bg-[#FEFCF7] hover:scale-[1.02] shadow-xs cursor-pointer";
 
               if (isJustMatched) {
-                style = "bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.20)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#4F46E5] dark:text-[#818CF8] scale-105 ring-2 ring-[#4F46E5]/40 animate-pulse";
+                style = "bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#66765B] scale-105 ring-2 ring-[#8B9B7A]/30 animate-pulse";
               } else if (isWrong) {
-                style = "bg-[#B42318]/10 border-2 border-[#B42318] dark:border-[#EF4444] text-[#B42318] dark:text-[#EF4444] scale-105 ring-2 ring-[#B42318]/40 animate-shake";
+                style = "bg-[#F8E5E0] border-2 border-[#D96F61] text-[#D96F61] scale-105 ring-2 ring-[#D96F61]/30 animate-shake";
               } else if (isSelected) {
-                style = "bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.14)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#151827] dark:text-[#F8FAFC] ring-2 ring-[#4F46E5]/40 scale-[1.03]";
+                style = "bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#30312F] ring-2 ring-[#8B9B7A]/30 scale-[1.02]";
               } else if (isTargetDrop) {
-                style = "bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.20)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#4F46E5] dark:text-[#818CF8] ring-2 ring-[#4F46E5]/40 scale-105 shadow-md";
+                style = "bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#66765B] ring-2 ring-[#8B9B7A]/30 scale-105 shadow-xs";
               } else if (isDragging) {
-                style = "opacity-40 border-dashed border-[#4F46E5] dark:border-[#6366F1] bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.10)] scale-95";
+                style = "opacity-40 border-dashed border-[#8B9B7A] bg-[#F1F5ED] scale-95";
               }
 
               return (
@@ -403,14 +360,14 @@ export const MatchGame: React.FC<MatchGameProps> = ({
                   onDrop={(e) => handleDrop(e, tile)}
                   onClick={() => handleTileClick(tile)}
                   aria-label={`Hiragana character ${tile.display}`}
-                  className={`w-full h-[72px] sm:h-[80px] max-w-[180px] mx-auto rounded-lg flex items-center justify-center transition-all duration-200 outline-none focus:ring-2 focus:ring-[#4F46E5] ${style}`}
+                  className={`w-full h-[48px] sm:h-[54px] max-w-[160px] mx-auto rounded-xl flex items-center justify-center transition-all duration-180 outline-none focus:ring-2 focus:ring-[#8B9B7A] ${style}`}
                 >
-                  <span className={`text-3xl sm:text-4xl font-bold tracking-normal ${FONT_CLASSES[activeFont]}`}>
+                  <span className={`text-2xl sm:text-3xl font-bold tracking-normal ${FONT_CLASSES[activeFont]}`}>
                     {tile.display}
                   </span>
 
                   {isJustMatched && (
-                    <Check className="w-4 h-4 text-[#4F46E5] dark:text-[#6366F1] ml-2 animate-scaleIn stroke-[3]" />
+                    <Check className="w-3.5 h-3.5 text-[#66765B] ml-1.5 animate-scaleIn stroke-[3]" />
                   )}
                 </button>
               );
@@ -418,7 +375,7 @@ export const MatchGame: React.FC<MatchGameProps> = ({
           </div>
 
           {/* Right Column: Sound Tiles */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {remainingSounds.map(tile => {
               const isSelected = selectedSound?.id === tile.id;
               const isWrong = wrongPair?.sId === tile.id;
@@ -426,18 +383,18 @@ export const MatchGame: React.FC<MatchGameProps> = ({
               const isDragging = draggedTile?.id === tile.id;
               const isTargetDrop = dragOverTileId === tile.id;
 
-              let style = "bg-[#F4F5FF] dark:bg-[#0D1120] border-[#D9DDF0] dark:border-[#252B40] text-[#151827] dark:text-[#F8FAFC] hover:border-[#B8BDE0] dark:hover:border-[#343B58] hover:bg-white dark:hover:bg-[#111522] hover:scale-[1.02] shadow-xs cursor-pointer";
+              let style = "bg-[#FFFDF8] border-[#E6E0D4] text-[#30312F] hover:border-[#B7C4AA] hover:bg-[#FEFCF7] hover:scale-[1.02] shadow-xs cursor-pointer";
 
               if (isJustMatched) {
-                style = "bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.20)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#4F46E5] dark:text-[#818CF8] scale-105 ring-2 ring-[#4F46E5]/40 animate-pulse";
+                style = "bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#66765B] scale-105 ring-2 ring-[#8B9B7A]/30 animate-pulse";
               } else if (isWrong) {
-                style = "bg-[#B42318]/10 border-2 border-[#B42318] dark:border-[#EF4444] text-[#B42318] dark:text-[#EF4444] scale-105 ring-2 ring-[#B42318]/40 animate-shake";
+                style = "bg-[#F8E5E0] border-2 border-[#D96F61] text-[#D96F61] scale-105 ring-2 ring-[#D96F61]/30 animate-shake";
               } else if (isSelected) {
-                style = "bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.14)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#151827] dark:text-[#F8FAFC] ring-2 ring-[#4F46E5]/40 scale-[1.03]";
+                style = "bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#30312F] ring-2 ring-[#8B9B7A]/30 scale-[1.02]";
               } else if (isTargetDrop) {
-                style = "bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.20)] border-2 border-[#4F46E5] dark:border-[#6366F1] text-[#4F46E5] dark:text-[#818CF8] ring-2 ring-[#4F46E5]/40 scale-105 shadow-md";
+                style = "bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#66765B] ring-2 ring-[#8B9B7A]/30 scale-105 shadow-xs";
               } else if (isDragging) {
-                style = "opacity-40 border-dashed border-[#4F46E5] dark:border-[#6366F1] bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.10)] scale-95";
+                style = "opacity-40 border-dashed border-[#8B9B7A] bg-[#F1F5ED] scale-95";
               }
 
               return (
@@ -450,14 +407,14 @@ export const MatchGame: React.FC<MatchGameProps> = ({
                   onDrop={(e) => handleDrop(e, tile)}
                   onClick={() => handleTileClick(tile)}
                   aria-label={`Sound pronunciation ${tile.display}`}
-                  className={`w-full h-[72px] sm:h-[80px] max-w-[180px] mx-auto rounded-lg flex items-center justify-center transition-all duration-200 outline-none focus:ring-2 focus:ring-[#4F46E5] ${style}`}
+                  className={`w-full h-[48px] sm:h-[54px] max-w-[160px] mx-auto rounded-xl flex items-center justify-center transition-all duration-180 outline-none focus:ring-2 focus:ring-[#8B9B7A] ${style}`}
                 >
-                  <span className="text-xl sm:text-2xl font-bold font-mono tracking-wider">
+                  <span className="text-base sm:text-lg font-bold font-mono tracking-wider">
                     "{tile.display}"
                   </span>
 
                   {isJustMatched && (
-                    <Check className="w-4 h-4 text-[#4F46E5] dark:text-[#6366F1] ml-2 animate-scaleIn stroke-[3]" />
+                    <Check className="w-3.5 h-3.5 text-[#66765B] ml-1.5 animate-scaleIn stroke-[3]" />
                   )}
                 </button>
               );
@@ -470,23 +427,23 @@ export const MatchGame: React.FC<MatchGameProps> = ({
 
       {/* Completed Matches Gallery */}
       {completedPairs.length > 0 && (
-        <div className="bg-white dark:bg-[#111522] p-4 sm:p-5 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-xs space-y-2 animate-pageTransition transition-colors duration-200">
-          <div className="text-[11px] font-extrabold uppercase tracking-widest text-[#4F46E5] dark:text-[#818CF8] flex items-center justify-between">
-            <span>Completed Matches ({completedPairs.length}/{totalCount})</span>
-            <span className="text-[10px] text-[#69738A] dark:text-[#737D94] font-normal">Tap to re-hear Japanese audio</span>
+        <div className="bg-[#FFFDF8] p-3 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] space-y-1 animate-pageTransition transition-colors duration-200">
+          <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#66765B] flex items-center justify-between">
+            <span>Completed ({completedPairs.length}/{totalCount})</span>
+            <span className="text-[9px] text-[#6F716C] font-normal">Tap to re-hear audio</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             {completedPairs.map(charObj => (
               <button
                 key={charObj.id}
                 onClick={() => onPlayAudio(charObj.character)}
-                className="px-3 py-1.5 rounded-lg bg-[#F4F5FF] dark:bg-[#0D1120] hover:bg-slate-200 dark:hover:bg-[#171C2D] text-[#151827] dark:text-[#A8B0C2] border border-[#D9DDF0] dark:border-[#252B40] transition-all flex items-center gap-2 text-xs font-extrabold hover:scale-105 shadow-xs"
+                className="px-2.5 py-1 rounded-lg bg-[#F4F1E9] hover:bg-[#F0EEE6] text-[#30312F] border border-[#DDD7CB] transition-all flex items-center gap-1.5 text-xs font-bold hover:scale-105 shadow-xs"
               >
-                <span className={`text-base font-black ${FONT_CLASSES[activeFont]}`}>{charObj.character}</span>
-                <ArrowRightLeft className="w-3 h-3 text-[#4F46E5] dark:text-[#6366F1]" />
-                <span className="font-mono text-xs">"{charObj.romanization}"</span>
-                <Volume2 className="w-3.5 h-3.5 text-[#69738A] dark:text-[#737D94]" />
+                <span className={`text-sm font-black ${FONT_CLASSES[activeFont]}`}>{charObj.character}</span>
+                <ArrowRightLeft className="w-3 h-3 text-[#66765B]" />
+                <span className="font-mono text-[11px]">"{charObj.romanization}"</span>
+                <Volume2 className="w-3 h-3 text-[#6F716C]" />
               </button>
             ))}
           </div>

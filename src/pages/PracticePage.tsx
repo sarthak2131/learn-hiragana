@@ -91,10 +91,10 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   const [activeStrokeChar, setActiveStrokeChar] = React.useState<HiraganaCharacter | null>(null);
 
   const tips = [
-    "💡 Recognition is easier than recall. Try answering before looking at the choices.",
-    "💡 Character shapes vary across fonts. Practicing Kyōkasho helps handwriting!",
-    "💡 Don't worry about making mistakes — weak characters will automatically repeat more often.",
-    "💡 Focus on stroke direction when practicing on the writing canvas."
+    "💡 Active recall helps you remember better. Try to recall the sound before checking!",
+    "💡 Practicing Kyōkasho font helps recognize real handwriting shapes.",
+    "💡 Don't worry about mistakes — weak characters will repeat automatically.",
+    "💡 Focus on stroke order and balance when practicing on the writing canvas."
   ];
 
   const currentTip = tips[currentIndex % tips.length];
@@ -118,6 +118,7 @@ export const PracticePage: React.FC<PracticePageProps> = ({
         difficulty={difficulty}
         onSelectDifficulty={onSelectDifficulty}
         onStartPractice={onStartPractice}
+        onPlayAudio={onPlayAudio}
       />
     );
   }
@@ -137,17 +138,17 @@ export const PracticePage: React.FC<PracticePageProps> = ({
     );
   }
 
-  // 3. Render Standalone Full-Session Modes (Match Up, Audio Sequence Memory, Spot Difference)
+  // 3. Render Standalone Full-Session Modes (Sequence Memory, Match Up, Spot Difference)
   if (selectedMode === 'sequence-memory') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 py-1">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Exit Audio Sequence Memory & Setup New Game</span>
+            <ArrowLeft className="w-4 h-4 text-[#66765B]" />
+            <span>Exit Game & Setup New</span>
           </button>
         </div>
         <AudioSequenceMemory
@@ -162,14 +163,14 @@ export const PracticePage: React.FC<PracticePageProps> = ({
 
   if (selectedMode === 'match-up' || selectedMode === 'match') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 py-1">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Exit Match Up & Setup New Game</span>
+            <ArrowLeft className="w-4 h-4 text-[#66765B]" />
+            <span>Exit Match Up & Setup New</span>
           </button>
         </div>
         <MatchGame
@@ -184,14 +185,14 @@ export const PracticePage: React.FC<PracticePageProps> = ({
 
   if (selectedMode === 'spot-difference' || selectedMode === 'similar') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 py-1">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Exit Spot Difference & Setup New Game</span>
+            <ArrowLeft className="w-4 h-4 text-[#66765B]" />
+            <span>Exit Spot Difference & Setup New</span>
           </button>
         </div>
         <SimilarCharacterGame
@@ -212,32 +213,32 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   const qMode = currentQuestion.mode;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 py-4 animate-fadeIn">
+    <div className="max-w-3xl mx-auto space-y-4 py-1 animate-pageTransition">
       
       {/* Top Question Progress Header */}
-      <div className="flex items-center justify-between gap-4 bg-white dark:bg-[#151c2c] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex items-center justify-between gap-4 bg-[#FFFDF8] p-4 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)]">
         <button
           onClick={onQuitSession}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white text-xs font-extrabold transition-all shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F4F1E9] border border-[#DDD7CB] text-[#6F716C] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] text-xs font-extrabold transition-all shrink-0 shadow-xs"
           title="Quit session and return to studio setup"
         >
           <X className="w-4 h-4" />
           <span className="hidden sm:inline">Quit / Setup New</span>
         </button>
 
-        <div className="flex-1 flex flex-col items-center">
-          <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+        <div className="flex-1 flex flex-col items-center max-w-md mx-auto">
+          <div className="text-xs font-bold text-[#30312F] mb-1">
             Question {currentIndex + 1} of {totalQuestions}
           </div>
-          <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-[#E8E4DA] rounded-full overflow-hidden border border-[#E6E0D4]">
             <div
-              className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-300"
+              className="h-full bg-[#8B9B7A] rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
 
-        <span className="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg">
+        <span className="text-xs font-black text-[#66765B] bg-[#E5EBDD] border border-[#CCD6C2] px-3 py-1 rounded-full">
           {progressPercent}%
         </span>
       </div>
@@ -323,7 +324,7 @@ export const PracticePage: React.FC<PracticePageProps> = ({
 
       {/* Stroke Order Overlay Modal */}
       {activeStrokeChar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <StrokeOrderViewer
             character={activeStrokeChar}
             activeFont={currentFont}

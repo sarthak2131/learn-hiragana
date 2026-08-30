@@ -19,15 +19,15 @@ export function WritingPage({ activeFont, onPlayAudio, onStartWritingPractice }:
     <div className="max-w-6xl mx-auto space-y-6 py-4 animate-pageTransition">
       
       {/* Header Banner */}
-      <div className="bg-white dark:bg-[#111522] p-6 sm:p-8 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-xs transition-colors duration-200">
-        <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#4F46E5] dark:text-[#818CF8] flex items-center gap-1.5">
+      <div className="bg-[#FFFDF8] p-6 sm:p-8 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] transition-colors duration-200">
+        <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#66765B] flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5" />
           <span>HANDWRITING STUDIO</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-[#151827] dark:text-[#F8FAFC] mt-1">
+        <h2 className="text-2xl sm:text-3xl font-black text-[#30312F] mt-1">
           Writing Practice & Shape Memory
         </h2>
-        <p className="text-xs text-[#475069] dark:text-[#A8B0C2] mt-1">
+        <p className="text-xs text-[#6F716C] mt-1">
           Tap any Hiragana character to launch interactive handwriting canvas practice with live stroke feedback.
         </p>
       </div>
@@ -38,14 +38,14 @@ export function WritingPage({ activeFont, onPlayAudio, onStartWritingPractice }:
           <button
             key={char.id}
             onClick={() => onStartWritingPractice(char)}
-            className="rounded-2xl bg-white dark:bg-[#111522] border border-[#D9DDF0] dark:border-[#252B40] hover:border-[#4F46E5] dark:hover:border-[#6366F1] p-5 text-left shadow-xs hover:-translate-y-0.5 transition-all group flex flex-col justify-between"
+            className="rounded-2xl bg-[#FFFDF8] border border-[#E6E0D4] hover:border-[#B7C4AA] p-5 text-left shadow-[0_4px_18px_rgba(48,49,47,0.06)] hover:-translate-y-0.5 transition-all group flex flex-col justify-between"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.2em] text-[#69738A] dark:text-[#737D94]">
+                <div className="text-xs font-black uppercase tracking-[0.2em] text-[#96978F]">
                   "{char.romanization}"
                 </div>
-                <div className="mt-2 text-5xl font-black text-[#151827] dark:text-white group-hover:text-[#4F46E5] dark:group-hover:text-[#818CF8] transition-colors" style={{ fontFamily: fontFamilies[activeFont] }}>
+                <div className="mt-2 text-5xl font-black text-[#30312F] group-hover:text-[#66765B] transition-colors" style={{ fontFamily: fontFamilies[activeFont] }}>
                   {char.character}
                 </div>
               </div>
@@ -56,14 +56,14 @@ export function WritingPage({ activeFont, onPlayAudio, onStartWritingPractice }:
                   event.stopPropagation();
                   onPlayAudio(char.character);
                 }}
-                className="p-2.5 rounded-lg bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.10)] text-[#4F46E5] dark:text-[#818CF8] transition-colors"
+                className="p-2.5 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-colors"
                 title="Play Audio"
               >
                 <Volume2 className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#D9DDF0] dark:border-[#252B40] flex items-center justify-between text-xs font-bold text-[#4F46E5] dark:text-[#818CF8]">
+            <div className="mt-4 pt-3 border-t border-[#E6E0D4] flex items-center justify-between text-xs font-bold text-[#66765B]">
               <span className="flex items-center gap-1.5">
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Draw Canvas</span>

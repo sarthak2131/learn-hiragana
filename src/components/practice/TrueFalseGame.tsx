@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Zap, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { Question, FontStyle } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
+import { Check, X, Zap, Volume2 } from 'lucide-react';
 import { HIRAGANA_DATA } from '../../data/hiraganaData';
 
 interface TrueFalseGameProps {
@@ -17,7 +17,7 @@ export const TrueFalseGame: React.FC<TrueFalseGameProps> = ({
   onAnswer,
   onPlayAudio
 }) => {
-  const [timeLeft, setTimeLeft] = useState<number>(2.5); // 2.5s rapid countdown
+  const [timeLeft, setTimeLeft] = useState<number>(2.5);
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const startTime = useRef<number>(Date.now());
@@ -75,154 +75,128 @@ export const TrueFalseGame: React.FC<TrueFalseGameProps> = ({
   }, [question.id]);
 
   const handleTimeOut = () => {
+    if (isAnswered) return;
     setIsAnswered(true);
-    setSelectedAnswer(null);
+    onPlayAudio(question.character.character);
+    setTimeout(() => {
+      onAnswer(false, 2.5);
+    }, 600);
   };
 
-  const handleUserChoice = (userChoice: boolean) => {
+  const handleUserChoice = (userSaidTrue: boolean) => {
     if (isAnswered) return;
     if (timerRef.current) clearInterval(timerRef.current);
 
-    setSelectedAnswer(userChoice);
+    const timeTakenSec = (Date.now() - startTime.current) / 1000;
+    setSelectedAnswer(userSaidTrue);
     setIsAnswered(true);
 
-    const isUserCorrect = userChoice === pairPrompt.isCorrectPair;
-    if (isUserCorrect) {
-      onPlayAudio(question.character.character);
-    }
+    const isUserCorrect = userSaidTrue === pairPrompt.isCorrectPair;
+    onPlayAudio(question.character.character);
+
+    setTimeout(() => {
+      onAnswer(isUserCorrect, timeTakenSec);
+    }, 600);
   };
 
-  const handleNext = () => {
-    const timeTaken = (Date.now() - startTime.current) / 1000;
-    const isUserCorrect = selectedAnswer === pairPrompt.isCorrectPair;
-    onAnswer(isUserCorrect, timeTaken);
-  };
-
-  const progressPercent = Math.max(0, Math.min(100, (timeLeft / 2.5) * 100));
+  const timerPercent = Math.max(0, Math.min(100, (timeLeft / 2.5) * 100));
 
   return (
-    <div className="flex flex-col items-center justify-center max-w-xl mx-auto w-full space-y-5 animate-pageTransition">
+    <div className="max-w-xl mx-auto space-y-4 py-1 animate-pageTransition select-none">
       
-      {/* Top Countdown Header */}
-      <div className="w-full bg-white dark:bg-[#111522] p-4 sm:p-5 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-xs flex items-center justify-between gap-3 transition-colors duration-200">
-        <div className="flex items-center gap-2">
-          <Zap className="w-5 h-5 text-[#4F46E5] dark:text-[#6366F1] fill-current animate-bounce" />
-          <div>
-            <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#4F46E5] dark:text-[#818CF8]">
-              Rapid Fire True or False
-            </div>
-            <div className="text-xs text-[#475069] dark:text-[#A8B0C2]">
-              Is this character and sound pair matching?
-            </div>
+      {/* Top Header Controls */}
+      <div className="bg-[#FFFDF8] p-5 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-4">
+        <div>
+          <div className="text-[10px] font-black uppercase tracking-widest text-[#66765B] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E5EBDD] border border-[#CCD6C2]">
+            <Zap className="w-3.5 h-3.5 text-[#66765B]" />
+            <span>RAPID FIRE TRUE OR FALSE</span>
           </div>
+          <h3 className="text-sm sm:text-base font-extrabold text-[#30312F] mt-2">
+            Is this character and sound pair matching?
+          </h3>
         </div>
 
-        <div className="text-right">
-          <span className="text-[10px] font-bold text-[#69738A] uppercase tracking-wider block">Timer</span>
-          <span className="text-lg font-mono font-black text-[#4F46E5] dark:text-[#818CF8]">{timeLeft.toFixed(1)}s</span>
+        <div className="flex flex-col items-end shrink-0">
+          <span className="text-[10px] font-extrabold text-[#6F716C] uppercase">Timer</span>
+          <span className="text-xl font-mono font-black text-[#66765B]">
+            {timeLeft.toFixed(1)}s
+          </span>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="w-full h-2 bg-[#F4F5FF] dark:bg-[#0D1120] rounded-full overflow-hidden border border-[#D9DDF0] dark:border-[#252B40]">
-        <div
-          className="h-full bg-[#4F46E5] dark:bg-[#6366F1] transition-all duration-100"
-          style={{ width: `${progressPercent}%` }}
+      {/* Timer Bar */}
+      <div className="w-full h-2 bg-[#E8E4DA] rounded-full overflow-hidden border border-[#E6E0D4]">
+        <div 
+          className="h-full bg-[#8B9B7A] rounded-full transition-all duration-100 ease-linear"
+          style={{ width: `${timerPercent}%` }}
         />
       </div>
 
-      {/* Main Pairing Display Prompt Card */}
-      <div className="w-full bg-white dark:bg-[#111522] p-8 sm:p-10 rounded-2xl border border-[#D9DDF0] dark:border-[#252B40] shadow-xs text-center space-y-4 relative overflow-hidden transition-colors duration-200">
-        <div className="flex items-center justify-center gap-6">
-          <div className={`text-7xl sm:text-8xl font-black text-[#151827] dark:text-[#F8FAFC] ${displayFontClass}`}>
+      {/* Main Character = Sound Pair Prompt Card */}
+      <div className="bg-[#FFFDF8] border border-[#E6E0D4] p-4 sm:p-6 rounded-2xl shadow-[0_4px_18px_rgba(48,49,47,0.06)] text-center space-y-3 relative overflow-hidden">
+        <button
+          onClick={() => onPlayAudio(question.character.character)}
+          className="absolute top-3 right-3 p-2 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-all"
+          title="Play audio"
+        >
+          <Volume2 className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center justify-center gap-3 sm:gap-5">
+          <span className={`text-5xl sm:text-7xl font-black text-[#30312F] ${displayFontClass}`}>
             {question.character.character}
-          </div>
-          <div className="text-3xl font-black text-[#69738A] dark:text-[#737D94]">=</div>
-          <div className="text-5xl sm:text-6xl font-black text-[#4F46E5] dark:text-[#818CF8] font-mono">
+          </span>
+          <span className="text-2xl sm:text-4xl font-black text-[#96978F]">=</span>
+          <span className="text-3xl sm:text-5xl font-mono font-black text-[#66765B]">
             "{pairPrompt.sound}"
-          </div>
+          </span>
         </div>
 
-        <div className="text-xs font-bold text-[#475069] dark:text-[#A8B0C2]">
-          Does <span className="font-extrabold text-[#151827] dark:text-[#F8FAFC]">{question.character.character}</span> make the sound <span className="font-extrabold text-[#4F46E5] dark:text-[#818CF8]">"{pairPrompt.sound}"</span>?
+        <div className="text-xs font-semibold text-[#6F716C]">
+          Does <span className="font-bold text-[#30312F]">{question.character.character}</span> make the sound <span className="font-mono text-[#66765B]">"{pairPrompt.sound}"</span>?
         </div>
       </div>
 
-      {/* Big TRUE & FALSE Action Buttons */}
-      <div className="w-full grid grid-cols-2 gap-4">
+      {/* Action Buttons: TRUE (Green) vs FALSE (Red) */}
+      <div className="grid grid-cols-2 gap-3">
+        
+        {/* TRUE Button */}
         <button
+          disabled={isAnswered}
           onClick={() => handleUserChoice(true)}
-          disabled={isAnswered}
-          className={`p-6 rounded-2xl border font-black text-2xl sm:text-3xl flex flex-col items-center justify-center gap-2 transition-all shadow-xs hover:scale-105 active:scale-95 ${
-            isAnswered
+          className={`p-4 sm:p-5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 transition-all duration-200 ${
+            selectedAnswer === true
               ? pairPrompt.isCorrectPair
-                ? 'bg-[#4F46E5] dark:bg-[#6366F1] text-white border-[#4F46E5] dark:border-[#6366F1]'
-                : selectedAnswer === true
-                ? 'bg-[#B42318] dark:bg-[#EF4444] text-white border-[#B42318] dark:border-[#EF4444]'
-                : 'opacity-40 border-[#D9DDF0] dark:border-[#252B40]'
-              : 'bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.10)] hover:bg-[#4F46E5] dark:hover:bg-[#6366F1] hover:text-white border-[#4F46E5]/30 text-[#4F46E5] dark:text-[#818CF8]'
+                ? 'bg-[#E5EBDD] border-[#8B9B7A] text-[#66765B] scale-105 ring-4 ring-[#8B9B7A]/30'
+                : 'bg-[#F8E5E0] border-[#D96F61] text-[#D96F61] animate-shake'
+              : 'bg-[#E5EBDD] border-[#CCD6C2] text-[#66765B] hover:bg-[#DCE4D4] hover:border-[#8B9B7A] hover:scale-105 shadow-xs'
           }`}
         >
-          <CheckCircle2 className="w-8 h-8" />
-          <span>TRUE (✔️)</span>
-        </button>
-
-        <button
-          onClick={() => handleUserChoice(false)}
-          disabled={isAnswered}
-          className={`p-6 rounded-2xl border font-black text-2xl sm:text-3xl flex flex-col items-center justify-center gap-2 transition-all shadow-xs hover:scale-105 active:scale-95 ${
-            isAnswered
-              ? !pairPrompt.isCorrectPair
-                ? 'bg-[#4F46E5] dark:bg-[#6366F1] text-white border-[#4F46E5] dark:border-[#6366F1]'
-                : selectedAnswer === false
-                ? 'bg-[#B42318] dark:bg-[#EF4444] text-white border-[#B42318] dark:border-[#EF4444]'
-                : 'opacity-40 border-[#D9DDF0] dark:border-[#252B40]'
-              : 'bg-[#B42318]/10 hover:bg-[#B42318] dark:hover:bg-[#EF4444] hover:text-white border-[#B42318]/30 text-[#B42318] dark:text-[#EF4444]'
-          }`}
-        >
-          <XCircle className="w-8 h-8" />
-          <span>FALSE (❌)</span>
-        </button>
-      </div>
-
-      {/* Answer Result Toast */}
-      {isAnswered && (
-        <div className="absolute inset-x-3 -bottom-4 sm:-bottom-5 z-30 flex items-center justify-between p-4 rounded-xl bg-white/95 dark:bg-[#111522]/95 border border-[#D9DDF0] dark:border-[#252B40] shadow-xl backdrop-blur-xl animate-pageTransition">
-          <div className="flex items-center gap-3">
-            {selectedAnswer === pairPrompt.isCorrectPair ? (
-              <>
-                <CheckCircle2 className="w-7 h-7 text-[#4F46E5] dark:text-[#6366F1] shrink-0" />
-                <div>
-                  <div className="text-sm font-bold text-[#4F46E5] dark:text-[#818CF8]">Rapid Fire Correct! 🎉</div>
-                  <div className="text-xs text-[#475069] dark:text-[#A8B0C2]">
-                    {question.character.character} = "{question.character.romanization}"
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <XCircle className="w-7 h-7 text-[#B42318] dark:text-[#EF4444] shrink-0" />
-                <div>
-                  <div className="text-sm font-bold text-[#B42318] dark:text-[#EF4444]">
-                    {selectedAnswer === null ? 'Time Out!' : 'Incorrect Choice'}
-                  </div>
-                  <div className="text-xs text-[#475069] dark:text-[#A8B0C2]">
-                    Correct sound for {question.character.character} is <span className="font-bold text-[#151827] dark:text-[#F8FAFC]">"{question.character.romanization}"</span>
-                  </div>
-                </div>
-              </>
-            )}
+          <div className="w-9 h-9 rounded-full bg-[#8B9B7A] text-[#FFFDF8] flex items-center justify-center shadow-xs">
+            <Check className="w-5 h-5 stroke-[3]" />
           </div>
+          <span className="text-base sm:text-xl font-black tracking-wider">TRUE ( ✔️ )</span>
+        </button>
 
-          <button
-            onClick={handleNext}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#4F46E5] dark:bg-[#6366F1] hover:bg-[#4338CA] dark:hover:bg-[#818CF8] text-white font-bold text-sm shadow-xs hover:scale-105"
-          >
-            <span>Next</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+        {/* FALSE Button */}
+        <button
+          disabled={isAnswered}
+          onClick={() => handleUserChoice(false)}
+          className={`p-4 sm:p-5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 transition-all duration-200 ${
+            selectedAnswer === false
+              ? !pairPrompt.isCorrectPair
+                ? 'bg-[#E5EBDD] border-[#8B9B7A] text-[#66765B] scale-105 ring-4 ring-[#8B9B7A]/30'
+                : 'bg-[#F8E5E0] border-[#D96F61] text-[#D96F61] animate-shake'
+              : 'bg-[#F8E5E0] border-[#F0C9C3] text-[#D96F61] hover:bg-[#F3D5CE] hover:border-[#D96F61] hover:scale-105 shadow-xs'
+          }`}
+        >
+          <div className="w-9 h-9 rounded-full bg-[#D96F61] text-[#FFFDF8] flex items-center justify-center shadow-xs">
+            <X className="w-5 h-5 stroke-[3]" />
+          </div>
+          <span className="text-base sm:text-xl font-black tracking-wider">FALSE ( ❌ )</span>
+        </button>
+
+      </div>
 
     </div>
   );

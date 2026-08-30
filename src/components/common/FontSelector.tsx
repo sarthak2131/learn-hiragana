@@ -1,121 +1,86 @@
-import { X } from 'lucide-react';
-import type { FontMode, FontStyle } from '../../types';
+import React from 'react';
+import { X, Check } from 'lucide-react';
+import { FontStyle, FontMode } from '../../types';
+import { FONT_CLASSES, FONT_DESCRIPTIONS } from '../../hooks/useFont';
 
 interface FontSelectorProps {
+  isOpen: boolean;
+  onClose: () => void;
   currentFont: FontStyle;
   onSelectFont: (font: FontStyle) => void;
-  fontMode: FontMode;
-  onSelectFontMode: (mode: FontMode) => void;
-  isOpen?: boolean;
-  onClose?: () => void;
-  isEmbedded?: boolean;
+  fontMode?: FontMode;
+  onSelectFontMode?: (mode: FontMode) => void;
 }
 
-const fonts: Array<{ id: FontStyle; label: string; sample: string }> = [
-  { id: 'kyokasho', label: 'Kyokasho', sample: 'あいうえお' },
-  { id: 'mincho', label: 'Mincho', sample: 'あいうえお' },
-  { id: 'gothic', label: 'Gothic', sample: 'あいうえお' },
-];
-
-const fontFamilies: Record<FontStyle, string> = {
-  kyokasho: '"Klee One", "Noto Sans JP", sans-serif',
-  mincho: '"Shippori Mincho", serif',
-  gothic: '"Zen Maru Gothic", sans-serif',
-};
-
-export function FontSelector({
+export const FontSelector: React.FC<FontSelectorProps> = ({
+  isOpen,
+  onClose,
   currentFont,
   onSelectFont,
-  fontMode,
-  onSelectFontMode,
-  isOpen = true,
-  onClose,
-  isEmbedded = false,
-}: FontSelectorProps) {
-  if (!isEmbedded && !isOpen) {
-    return null;
-  }
+}) => {
+  if (!isOpen) return null;
 
-  const content = (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Choose Font</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Switch the study feel instantly.</p>
-        </div>
-        {!isEmbedded && onClose ? (
+  const fontKeys: FontStyle[] = ['kyokasho', 'mincho', 'gothic'];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-pageTransition">
+      <div className="bg-[#FFFDF8] border border-[#E6E0D4] rounded-2xl max-w-md w-full p-6 shadow-xl space-y-5 text-[#30312F] relative">
+        
+        <div className="flex items-center justify-between border-b border-[#E6E0D4] pb-3">
+          <div>
+            <h3 className="text-lg font-black text-[#30312F]">Japanese Font Style</h3>
+            <p className="text-xs text-[#6F716C]">Choose how Hiragana characters are rendered</p>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-2 rounded-xl bg-[#F4F1E9] hover:bg-[#F0EEE6] text-[#6F716C] hover:text-[#30312F] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
-        ) : null}
-      </div>
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {fonts.map((font) => {
-          const active = currentFont === font.id;
-          return (
-            <button
-              key={font.id}
-              onClick={() => onSelectFont(font.id)}
-              className={`rounded-2xl border p-4 text-left transition-all ${
-                active
-                  ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 ring-2 ring-rose-500/20'
-                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
-              }`}
-            >
-              <div className="text-sm font-bold text-slate-900 dark:text-white">{font.label}</div>
-              <div
-                className="mt-2 text-2xl"
-                style={{ fontFamily: fontFamilies[font.id] }}
+        <div className="space-y-3">
+          {fontKeys.map((fontKey) => {
+            const fontInfo = FONT_DESCRIPTIONS[fontKey];
+            const isSelected = currentFont === fontKey;
+
+            return (
+              <button
+                key={fontKey}
+                onClick={() => {
+                  onSelectFont(fontKey);
+                  onClose();
+                }}
+                className={`w-full p-4 rounded-xl border transition-all text-left flex items-center justify-between ${
+                  isSelected
+                    ? 'bg-[#F1F5ED] border-2 border-[#8B9B7A] text-[#30312F]'
+                    : 'bg-[#FFFDF8] border-[#E6E0D4] hover:border-[#B7C4AA] hover:bg-[#FEFCF7]'
+                }`}
               >
-                {font.sample}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-extrabold text-[#30312F]">{fontInfo.title}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E5EBDD] text-[#66765B]">
+                      {fontInfo.jpName}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#6F716C]">{fontInfo.desc}</p>
+                </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => onSelectFontMode('selected')}
-          className={`rounded-xl px-3 py-2 text-sm font-bold border transition-all ${
-            fontMode === 'selected'
-              ? 'border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200'
-              : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
-          }`}
-        >
-          Selected
-        </button>
-        <button
-          onClick={() => onSelectFontMode('random')}
-          className={`rounded-xl px-3 py-2 text-sm font-bold border transition-all ${
-            fontMode === 'random'
-              ? 'border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200'
-              : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
-          }`}
-        >
-          Random
-        </button>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className={`text-3xl font-bold ${FONT_CLASSES[fontKey]}`}>あ</span>
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-[#8B9B7A] text-[#FFFDF8] flex items-center justify-center">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
       </div>
     </div>
   );
-
-  if (isEmbedded) {
-    return (
-      <section className="bg-white dark:bg-[#151c2c] rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-        {content}
-      </section>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-      <div className="w-full max-w-3xl rounded-3xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-6">
-        {content}
-      </div>
-    </div>
-  );
-}
+};

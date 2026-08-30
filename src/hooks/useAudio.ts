@@ -11,7 +11,16 @@ const ROMAN_TO_HIRAGANA: Record<string, string> = {
   ma: 'ま', mi: 'み', mu: 'む', me: 'め', mo: 'も',
   ya: 'や', yu: 'ゆ', yo: 'よ',
   ra: 'ら', ri: 'り', ru: 'る', re: 'れ', ro: 'ろ',
-  wa: 'わ', wo: 'を', n: 'ん'
+  wa: 'わ', wo: 'を', n: 'ん',
+  
+  // Dakuon (゛)
+  ga: 'が', gi: 'ぎ', gu: 'ぐ', ge: 'げ', go: 'ご',
+  za: 'ざ', ji: 'じ', zu: 'ず', ze: 'ぜ', zo: 'ぞ',
+  da: 'だ', dji: 'ぢ', dzu: 'づ', de: 'で', do: 'ど',
+  ba: 'ば', bi: 'び', bu: 'ぶ', be: 'べ', bo: 'ぼ',
+
+  // Handakuten (゜)
+  pa: 'ぱ', pi: 'ぴ', pu: 'ぷ', pe: 'ぺ', po: 'ぽ'
 };
 
 function pickJapaneseVoice(voices: SpeechSynthesisVoice[]) {

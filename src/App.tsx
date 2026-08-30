@@ -183,9 +183,8 @@ export function App() {
   const overallStats = getOverallStats();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5F7FF] text-[#151827] dark:bg-[#080A12] dark:text-[#F8FAFC] font-sans transition-colors duration-250 pb-20 md:pb-8">
+    <div className="min-h-screen flex flex-col bg-[#F7F3EA] bg-[url('/japanese_paper_bg.jpg')] bg-fixed bg-cover bg-center text-[#30312F] font-sans transition-colors duration-250 pb-20 md:pb-8 relative">
       
-      {/* Sticky Header */}
       <Header
         currentFont={font}
         onOpenFontSelector={() => setIsFontSelectorOpen(true)}
@@ -202,7 +201,7 @@ export function App() {
 
 
       {/* Main View Router */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-1 sm:py-2">
         {activeTab === 'home' && (
           <HomePage
             currentFont={font}

@@ -1,356 +1,216 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { RotateCcw, Trash2, Eye, Check, X, Volume2, Info, Timer, Zap } from 'lucide-react';
-import { Question, FontStyle } from '../../types';
+import React, { useRef, useState, useEffect } from 'react';
+import { HiraganaCharacter, FontStyle, Question } from '../../types';
 import { FONT_CLASSES } from '../../hooks/useFont';
-import { STROKE_DATA_MAP } from '../../data/strokeOrderData';
+import { RotateCcw, Volume2, CheckCircle2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 interface WritingCanvasProps {
-  question: Question;
+  character?: HiraganaCharacter;
+  question?: Question;
   activeFont: FontStyle;
-  onAnswer: (isCorrect: boolean, timeTakenSec: number) => void;
   onPlayAudio: (text: string) => void;
+  onAnswer?: (isCorrect: boolean, timeTakenSec: number) => void;
   onOpenStrokeGuide?: () => void;
+  onFinish?: () => void;
 }
 
 export const WritingCanvas: React.FC<WritingCanvasProps> = ({
+  character: propChar,
   question,
   activeFont,
-  onAnswer,
   onPlayAudio,
-  onOpenStrokeGuide
+  onAnswer,
+  onFinish
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [strokeHistory, setStrokeHistory] = useState<ImageData[]>([]);
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [showGuideOverlay, setShowGuideOverlay] = useState(false);
-  const [startTime, setStartTime] = useState(Date.now());
+  const charObj = question ? question.character : propChar;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [showGuide, setShowGuide] = useState<boolean>(true);
+  const [hasDrawn, setHasDrawn] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const startTime = useRef<number>(Date.now());
 
-  // Countdown timer settings (10s default countdown for writing)
-  const [countdownSeconds, setCountdownSeconds] = useState<number>(10);
-  const [timeLeft, setTimeLeft] = useState<number>(10);
-  const timerRef = useRef<any>(null);
+  useEffect(() => {
+    clearCanvas();
+    startTime.current = Date.now();
+    if (charObj) {
+      onPlayAudio(charObj.character);
+    }
+  }, [charObj?.id]);
 
-  const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
-  const strokeData = STROKE_DATA_MAP[question.character.character];
+  if (!charObj) return null;
 
-  // Canvas Initialization & Countdown Setup
-  const clearCanvas = useCallback(() => {
+  const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setStrokeHistory([]);
-  }, []);
-
-  useEffect(() => {
-    setIsRevealed(false);
-    setShowGuideOverlay(false);
-    setStartTime(Date.now());
-    setTimeLeft(countdownSeconds);
-
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 0.1) {
-          clearInterval(timerRef.current);
-          handleTimeOut();
-          return 0;
-        }
-        return prev - 0.1;
-      });
-    }, 100);
-
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.scale(dpr, dpr);
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = 8;
-        ctx.strokeStyle = '#e11d48';
-      }
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [question.id, countdownSeconds]);
-
-  const handleTimeOut = () => {
-    if (!isRevealed) {
-      setIsRevealed(true);
-      onPlayAudio(question.character.character);
-    }
+    setHasDrawn(false);
+    setIsVerified(false);
   };
 
-  const saveState = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    setStrokeHistory(prev => [...prev, imgData]);
-  }, []);
-
-  const handleUndo = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    if (strokeHistory.length > 1) {
-      const prevStates = [...strokeHistory];
-      prevStates.pop();
-      const lastState = prevStates[prevStates.length - 1];
-      ctx.putImageData(lastState, 0, 0);
-      setStrokeHistory(prevStates);
-    } else {
-      clearCanvas();
-    }
-  }, [strokeHistory, clearCanvas]);
-
-  const getCanvasCoords = (e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-
-    let clientX = 0;
-    let clientY = 0;
-
-    if ('touches' in e && e.touches.length > 0) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else if ('clientX' in e) {
-      clientX = (e as React.MouseEvent).clientX;
-      clientY = (e as React.MouseEvent).clientY;
-    }
-
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    };
-  };
-
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isRevealed) return;
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    saveState();
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);
-
-    const { x, y } = getCanvasCoords(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || isRevealed) return;
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const { x, y } = getCanvasCoords(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
+    setHasDrawn(true);
+    draw(e);
   };
 
   const stopDrawing = () => {
     setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.beginPath();
   };
 
-  const handleReveal = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setIsRevealed(true);
-    onPlayAudio(question.character.character);
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing && e.type !== 'mousedown' && e.type !== 'touchstart') return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    let clientX = 0;
+    let clientY = 0;
+
+    if ('touches' in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    const x = (clientX - rect.left) * (canvas.width / rect.width);
+    const y = (clientY - rect.top) * (canvas.height / rect.height);
+
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#30312F';
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
   };
 
-  const handleSelfEval = (isGood: boolean) => {
-    const timeTaken = (Date.now() - startTime) / 1000;
-    onAnswer(isGood, timeTaken);
-  };
+  const handleVerify = () => {
+    if (!hasDrawn) return;
+    setIsVerified(true);
+    onPlayAudio(charObj.character);
 
-  const progressPercent = Math.max(0, Math.min(100, (timeLeft / countdownSeconds) * 100));
+    if (onAnswer) {
+      const timeTakenSec = (Date.now() - startTime.current) / 1000;
+      setTimeout(() => {
+        onAnswer(true, timeTakenSec);
+      }, 700);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center max-w-xl mx-auto w-full space-y-4">
+    <div className="max-w-2xl mx-auto space-y-6 py-2 animate-pageTransition select-none">
       
-      {/* Top Countdown Bar & Controls */}
-      <div className="w-full bg-white dark:bg-[#151c2c] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Timer className="w-4 h-4 text-rose-500 animate-pulse" />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Writing Countdown:</span>
-          <span className="text-xs font-mono font-extrabold text-rose-600 dark:text-rose-400">{timeLeft.toFixed(1)}s</span>
-        </div>
-
-        {/* Countdown preset buttons */}
-        <div className="flex items-center gap-1">
-          {[5, 10, 15, 20].map(s => (
-            <button
-              key={s}
-              onClick={() => setCountdownSeconds(s)}
-              className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
-                countdownSeconds === s
-                  ? 'bg-rose-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              {s}s
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-        <div
-          className={`h-full transition-all duration-100 ${
-            progressPercent > 40 ? 'bg-emerald-500' : progressPercent > 15 ? 'bg-amber-500' : 'bg-rose-500'
-          }`}
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-
-      {/* Target Sound Prompt */}
-      <div className="w-full flex items-center justify-between px-6 py-3.5 rounded-2xl bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 shadow-sm">
+      {/* Header Info Banner */}
+      <div className="bg-[#FFFDF8] p-5 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-            Write Hiragana for sound:
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#66765B] px-2.5 py-0.5 rounded-full bg-[#E5EBDD] border border-[#CCD6C2]">
+            WRITE IT — HANDWRITING CANVAS
           </span>
-          <span className="text-3xl font-extrabold text-rose-600 dark:text-rose-400">
-            {question.character.romanization}
-          </span>
+          <h3 className="text-base font-extrabold text-[#30312F] mt-2">
+            Practice drawing <span className="text-[#66765B]">"{charObj.romanization}"</span> ({charObj.character})
+          </h3>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onPlayAudio(question.character.character)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-            title="Listen sound"
-          >
-            <Volume2 className="w-5 h-5" />
-          </button>
-          
-          <button
-            onClick={() => setShowGuideOverlay(prev => !prev)}
-            className={`p-2 rounded-xl border text-xs font-bold transition-colors ${
-              showGuideOverlay 
-                ? 'bg-amber-500 text-white border-amber-500' 
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-            }`}
-            title="Toggle faint reference outline"
-          >
-            <Info className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={() => onPlayAudio(charObj.character)}
+          className="p-3 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-all hover:scale-105 shadow-xs"
+          title="Play Audio"
+        >
+          <Volume2 className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Drawing Canvas Box */}
-      <div className="relative w-full aspect-square max-w-[340px] sm:max-w-[380px] bg-slate-50 dark:bg-[#0b0f19] rounded-3xl border-2 border-slate-300 dark:border-slate-700 shadow-xl overflow-hidden touch-none flex items-center justify-center">
-        <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10">
-          <div className="w-full h-full border-b border-r border-dashed border-slate-900 dark:border-white top-1/2 left-0 absolute w-full -translate-y-1/2" />
-          <div className="w-full h-full border-r border-dashed border-slate-900 dark:border-white left-1/2 top-0 absolute h-full -translate-x-1/2" />
-        </div>
-
-        {showGuideOverlay && (
-          <div className={`absolute inset-0 flex items-center justify-center text-[180px] sm:text-[220px] font-bold text-slate-300 dark:text-slate-800 opacity-40 pointer-events-none select-none ${displayFontClass}`}>
-            {question.character.character}
-          </div>
-        )}
-
-        {isRevealed && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-[#151c2c]/90 backdrop-blur-xs z-20 animate-fadeIn p-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
-              {timeLeft <= 0 ? "Time's Up! Reference:" : 'Correct Character:'}
-            </span>
-            <div className={`text-9xl font-bold text-slate-900 dark:text-white ${displayFontClass}`}>
-              {question.character.character}
-            </div>
-            <div className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-2">
-              {strokeData ? `${strokeData.totalStrokes} Strokes` : ''}
-            </div>
-          </div>
-        )}
-
-        <canvas
-          ref={canvasRef}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
-          className="w-full h-full cursor-crosshair z-10 touch-none select-none"
-          style={{ touchAction: 'none' }}
-        />
-
-      </div>
-
-      {/* Action Toolbar */}
-      <div className="w-full flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      {/* Main Drawing Canvas Paper Card */}
+      <div className="bg-[#FFFDF8] border border-[#D8D3C8] p-6 rounded-2xl shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex flex-col items-center space-y-5 relative overflow-hidden">
+        
+        {/* Toggle Guide & Clear Tools */}
+        <div className="w-full flex items-center justify-between text-xs font-bold">
           <button
-            onClick={handleUndo}
-            disabled={strokeHistory.length === 0 || isRevealed}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold disabled:opacity-40"
+            onClick={() => setShowGuide(!showGuide)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F4F1E9] text-[#30312F] border border-[#DDD7CB] hover:bg-[#F0EEE6] transition-all"
           >
-            <RotateCcw className="w-4 h-4" />
-            <span>Undo</span>
+            {showGuide ? <EyeOff className="w-4 h-4 text-[#66765B]" /> : <Eye className="w-4 h-4 text-[#66765B]" />}
+            <span>{showGuide ? 'Hide Template Guide' : 'Show Template Guide'}</span>
           </button>
 
           <button
             onClick={clearCanvas}
-            disabled={isRevealed}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F4F1E9] text-[#6F716C] border border-[#DDD7CB] hover:text-[#30312F] transition-all"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>Clear</span>
+            <RotateCcw className="w-4 h-4" />
+            <span>Clear Canvas</span>
           </button>
         </div>
 
-        {!isRevealed ? (
-          <button
-            onClick={handleReveal}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-500/20 transition-all"
-          >
-            <Eye className="w-4 h-4" />
-            <span>Reveal</span>
-          </button>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleSelfEval(false)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs"
-            >
-              <X className="w-4 h-4 text-rose-500" />
-              <span>Try again</span>
-            </button>
-
-            <button
-              onClick={() => handleSelfEval(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20"
-            >
-              <Check className="w-4 h-4" />
-              <span>Looks good</span>
-            </button>
+        {/* 280x280 Drawing Surface */}
+        <div className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-2xl border-2 border-dashed border-[#DDD7CB] bg-[#FFFDF8] overflow-hidden flex items-center justify-center shadow-inner">
+          
+          {/* Centered Guide Grid Crosshairs */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div className="w-full h-[1px] bg-[#E6E0D4]" />
+            <div className="h-full w-[1px] bg-[#E6E0D4] absolute" />
           </div>
+
+          {/* Low-Opacity Template Guide Character */}
+          {showGuide && (
+            <div className={`absolute inset-0 flex items-center justify-center text-[180px] sm:text-[200px] font-black opacity-[0.14] text-[#8B9B7A] pointer-events-none select-none ${FONT_CLASSES[activeFont]}`}>
+              {charObj.character}
+            </div>
+          )}
+
+          {/* Interactive Canvas */}
+          <canvas
+            ref={canvasRef}
+            width={320}
+            height={320}
+            onMouseDown={startDrawing}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onMouseMove={draw}
+            onTouchStart={startDrawing}
+            onTouchEnd={stopDrawing}
+            onTouchMove={draw}
+            className="w-full h-full relative z-10 cursor-crosshair"
+          />
+        </div>
+
+        <div className="text-xs text-[#6F716C]">
+          Draw the character stroke by stroke inside the box above.
+        </div>
+      </div>
+
+      {/* Submit / Verification Controls */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleVerify}
+          disabled={!hasDrawn || isVerified}
+          className="flex-1 py-3.5 rounded-xl bg-[#8B9B7A] hover:bg-[#66765B] disabled:opacity-40 text-[#FFFDF8] font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2"
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{isVerified ? 'Stroke Verified ✓' : 'Verify My Handwriting'}</span>
+        </button>
+
+        {onFinish && (
+          <button
+            onClick={onFinish}
+            className="px-6 py-3.5 rounded-xl bg-[#FFFDF8] hover:bg-[#F0EEE6] text-[#30312F] font-bold text-sm border border-[#D8D3C8] transition-all flex items-center gap-1.5"
+          >
+            <span>Next</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         )}
       </div>
 

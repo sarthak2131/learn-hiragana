@@ -1,6 +1,8 @@
 import { HiraganaCharacter, HiraganaRow } from '../types/index';
 
 export const HIRAGANA_DATA: HiraganaCharacter[] = [
+  // --- GOJŪON (BASIC SETS) ---
+
   // A row
   { id: 'a', character: 'あ', romanization: 'a', row: 'A', rowName: 'A row', exampleWord: '朝 (asa)', exampleMeaning: 'Morning' },
   { id: 'i', character: 'い', romanization: 'i', row: 'A', rowName: 'A row', exampleWord: '犬 (inu)', exampleMeaning: 'Dog' },
@@ -66,11 +68,53 @@ export const HIRAGANA_DATA: HiraganaCharacter[] = [
   { id: 'wa', character: 'わ', romanization: 'wa', row: 'W', rowName: 'W row', exampleWord: '私 (watashi)', exampleMeaning: 'I / Myself' },
   { id: 'wo', character: 'を', romanization: 'wo', row: 'W', rowName: 'W row', exampleWord: '〜を (wo particle)', exampleMeaning: 'Object particle' },
 
-  // N
+  // N Solo
   { id: 'n', character: 'ん', romanization: 'n', row: 'N_SOLO', rowName: 'N', exampleWord: '本 (hon)', exampleMeaning: 'Book' },
+
+
+  // --- DAKUON (DAKUTEN ゛) ---
+
+  // G row (Dakuon)
+  { id: 'ga', character: 'が', romanization: 'ga', row: 'G', rowName: 'G row (Gō)', exampleWord: '頑固 (ganko)', exampleMeaning: 'Stubborn' },
+  { id: 'gi', character: 'ぎ', romanization: 'gi', row: 'G', rowName: 'G row (Gō)', exampleWord: '銀行 (ginkou)', exampleMeaning: 'Bank' },
+  { id: 'gu', character: 'ぐ', romanization: 'gu', row: 'G', rowName: 'G row (Gō)', exampleWord: '軍手 (gunte)', exampleMeaning: 'Work gloves' },
+  { id: 'ge', character: 'げ', romanization: 'ge', row: 'G', rowName: 'G row (Gō)', exampleWord: '芸術 (geijutsu)', exampleMeaning: 'Art' },
+  { id: 'go', character: 'ご', romanization: 'go', row: 'G', rowName: 'G row (Gō)', exampleWord: 'ご飯 (gohan)', exampleMeaning: 'Rice / Meal' },
+
+  // Z row (Dakuon)
+  { id: 'za', character: 'ざ', romanization: 'za', row: 'Z', rowName: 'Z row (Za)', exampleWord: '雑誌 (zasshi)', exampleMeaning: 'Magazine' },
+  { id: 'ji', character: 'じ', romanization: 'ji', row: 'Z', rowName: 'Z row (Za)', exampleWord: '時間 (jikan)', exampleMeaning: 'Time' },
+  { id: 'zu', character: 'ず', romanization: 'zu', row: 'Z', rowName: 'Z row (Za)', exampleWord: 'ずっと (zutto)', exampleMeaning: 'Always / Much' },
+  { id: 'ze', character: 'ぜ', romanization: 'ze', row: 'Z', rowName: 'Z row (Za)', exampleWord: 'ゼロ (zero)', exampleMeaning: 'Zero' },
+  { id: 'zo', character: 'ぞ', romanization: 'ぞ', row: 'Z', rowName: 'Z row (Za)', exampleWord: '象 (zou)', exampleMeaning: 'Elephant' },
+
+  // D row (Dakuon)
+  { id: 'da', character: 'だ', romanization: 'da', row: 'D', rowName: 'D row (Da)', exampleWord: '大学 (daigaku)', exampleMeaning: 'University' },
+  { id: 'dji', character: 'ぢ', romanization: 'dji', row: 'D', rowName: 'D row (Da)', exampleWord: '鼻血 (hanaji)', exampleMeaning: 'Nosebleed' },
+  { id: 'dzu', character: 'づ', romanization: 'dzu', row: 'D', rowName: 'D row (Da)', exampleWord: '続く (tsuzuku)', exampleMeaning: 'Continue' },
+  { id: 'de', character: 'で', romanization: 'de', row: 'D', rowName: 'D row (Da)', exampleWord: '電気 (denki)', exampleMeaning: 'Electricity' },
+  { id: 'do', character: 'ど', romanization: 'do', row: 'D', rowName: 'D row (Da)', exampleWord: '友達 (tomodachi)', exampleMeaning: 'Friend' },
+
+  // B row (Dakuon)
+  { id: 'ba', character: 'ば', romanization: 'ba', row: 'B', rowName: 'B row (Ba)', exampleWord: 'バス (basu)', exampleMeaning: 'Bus' },
+  { id: 'bi', character: 'び', romanization: 'bi', row: 'B', rowName: 'B row (Ba)', exampleWord: '病院 (byouin)', exampleMeaning: 'Hospital' },
+  { id: 'bu', character: 'ぶ', romanization: 'bu', row: 'B', rowName: 'B row (Ba)', exampleWord: '豚肉 (butaniku)', exampleMeaning: 'Pork' },
+  { id: 'be', character: 'べ', romanization: 'be', row: 'B', rowName: 'B row (Ba)', exampleWord: '勉強 (benkyou)', exampleMeaning: 'Study' },
+  { id: 'bo', character: 'ぼ', romanization: 'bo', row: 'B', rowName: 'B row (Ba)', exampleWord: '帽子 (boushi)', exampleMeaning: 'Hat' },
+
+
+  // --- HANDAKUTEN (HANDAKUTEN ゜) ---
+
+  // P row (Handakuten)
+  { id: 'pa', character: 'ぱ', romanization: 'pa', row: 'P', rowName: 'P row (Pa)', exampleWord: 'パン (pan)', exampleMeaning: 'Bread' },
+  { id: 'pi', character: 'ぴ', romanization: 'pi', row: 'P', rowName: 'P row (Pa)', exampleWord: 'ピアノ (piano)', exampleMeaning: 'Piano' },
+  { id: 'pu', character: 'ぷ', romanization: 'pu', row: 'P', rowName: 'P row (Pa)', exampleWord: 'プール (puuru)', exampleMeaning: 'Swimming pool' },
+  { id: 'pe', character: 'ぺ', romanization: 'pe', row: 'P', rowName: 'P row (Pa)', exampleWord: 'ペン (pen)', exampleMeaning: 'Pen' },
+  { id: 'po', character: 'ぽ', romanization: 'po', row: 'P', rowName: 'P row (Pa)', exampleWord: 'ポケット (poketto)', exampleMeaning: 'Pocket' },
 ];
 
 export const HIRAGANA_ROWS: HiraganaRow[] = [
+  // Basic Gojūon
   { id: 'A', name: 'A', label: 'あ い う え お', characters: HIRAGANA_DATA.filter(c => c.row === 'A') },
   { id: 'K', name: 'K', label: 'か き く け こ', characters: HIRAGANA_DATA.filter(c => c.row === 'K') },
   { id: 'S', name: 'S', label: 'さ し す せ そ', characters: HIRAGANA_DATA.filter(c => c.row === 'S') },
@@ -82,6 +126,15 @@ export const HIRAGANA_ROWS: HiraganaRow[] = [
   { id: 'R', name: 'R', label: 'ら り る れ ろ', characters: HIRAGANA_DATA.filter(c => c.row === 'R') },
   { id: 'W', name: 'W', label: 'わ を', characters: HIRAGANA_DATA.filter(c => c.row === 'W') },
   { id: 'N_SOLO', name: 'ん', label: 'ん', characters: HIRAGANA_DATA.filter(c => c.row === 'N_SOLO') },
+
+  // Dakuon (゛)
+  { id: 'G', name: 'G (゛)', label: 'が ぎ ぐ げ ご', characters: HIRAGANA_DATA.filter(c => c.row === 'G') },
+  { id: 'Z', name: 'Z (゛)', label: 'ざ じ ず ぜ ぞ', characters: HIRAGANA_DATA.filter(c => c.row === 'Z') },
+  { id: 'D', name: 'D (゛)', label: 'だ ぢ づ で ど', characters: HIRAGANA_DATA.filter(c => c.row === 'D') },
+  { id: 'B', name: 'B (゛)', label: 'ば び ぶ べ ぼ', characters: HIRAGANA_DATA.filter(c => c.row === 'B') },
+
+  // Handakuten (゜)
+  { id: 'P', name: 'P (゜)', label: 'ぱ ぴ ぷ ぺ ぽ', characters: HIRAGANA_DATA.filter(c => c.row === 'P') },
 ];
 
 export const getCharacterByRomanization = (rom: string): HiraganaCharacter | undefined => {

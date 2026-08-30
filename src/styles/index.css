@@ -3,58 +3,74 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light dark;
-  --bg: #F5F7FF;
-  --page: #F8F9FD;
-  --surface: #FFFFFF;
-  --surface-elevated: #FFFFFF;
-  --surface-interactive: #F4F5FF;
-  --border: #D9DDF0;
-  --border-hover: #B8BDE0;
-  --primary: #4F46E5;
-  --primary-hover: #4338CA;
-  --primary-pressed: #3730A3;
-  --primary-soft: #EEF2FF;
-  --primary-selected: #E8EAFF;
-  --text: #151827;
-  --text-secondary: #475069;
-  --text-muted: #69738A;
-  --text-disabled: #A0A7B8;
-  --error: #B42318;
+  color-scheme: light;
+  --bg: #F7F3EA;
+  --bg-secondary: #FBF9F4;
+  --surface: #FFFDF8;
+  --surface-elevated: #FFFDF8;
+  --surface-interactive: #F1F5ED;
+  --border: #E6E0D4;
+  --border-secondary: #D8D3C8;
+  --border-hover: #B7C4AA;
+  --primary-sage: #8B9B7A;
+  --dark-sage: #66765B;
+  --light-sage: #DCE4D4;
+  --badge-bg: #E5EBDD;
+  --badge-border: #CCD6C2;
+  --coral-cta: #E98270;
+  --coral-hover: #D96F61;
+  --mustard: #D9AE58;
+  --dusty-blue: #AFC4CE;
+  --text-primary: #30312F;
+  --text-secondary: #6F716C;
+  --text-muted: #96978F;
+  --shadow-soft: 0 4px 18px rgba(48, 49, 47, 0.06);
+  --shadow-hover: 0 8px 24px rgba(48, 49, 47, 0.08);
 }
 
 html.dark {
-  color-scheme: dark;
-  --bg: #080A12;
-  --page: #0B0E18;
-  --surface: #111522;
-  --surface-elevated: #171C2D;
-  --surface-interactive: #0D1120;
-  --border: #252B40;
-  --border-hover: #343B58;
-  --primary: #6366F1;
-  --primary-hover: #818CF8;
-  --primary-pressed: #4F46E5;
-  --primary-soft: rgba(99, 102, 241, 0.10);
-  --primary-selected: rgba(99, 102, 241, 0.14);
-  --text: #F8FAFC;
-  --text-secondary: #A8B0C2;
-  --text-muted: #737D94;
-  --text-disabled: #4B5568;
-  --error: #EF4444;
+  color-scheme: light;
+  --bg: #F7F3EA;
+  --bg-secondary: #FBF9F4;
+  --surface: #FFFDF8;
+  --surface-elevated: #FFFDF8;
+  --surface-interactive: #F1F5ED;
+  --border: #E6E0D4;
+  --border-secondary: #D8D3C8;
+  --border-hover: #B7C4AA;
+  --primary-sage: #8B9B7A;
+  --dark-sage: #66765B;
+  --light-sage: #DCE4D4;
+  --badge-bg: #E5EBDD;
+  --badge-border: #CCD6C2;
+  --coral-cta: #E98270;
+  --coral-hover: #D96F61;
+  --mustard: #D9AE58;
+  --dusty-blue: #AFC4CE;
+  --text-primary: #30312F;
+  --text-secondary: #6F716C;
+  --text-muted: #96978F;
+  --shadow-soft: 0 4px 18px rgba(48, 49, 47, 0.06);
+  --shadow-hover: 0 8px 24px rgba(48, 49, 47, 0.08);
 }
 
 html {
   scroll-behavior: smooth;
-  background-color: var(--bg);
+  background-color: #F7F3EA;
 }
 
+/* FIXED JAPANESE PAPER BACKGROUND THAT NEVER SCROLLS */
 body {
   margin: 0;
   min-width: 320px;
-  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
+  font-family: "Inter", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #F7F3EA;
+  background-image: url('/japanese_paper_bg.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  color: #30312F;
   transition: background-color 250ms ease, color 250ms ease;
 }
 
@@ -67,32 +83,65 @@ a {
   text-decoration: none;
 }
 
-/* Solid Monochromatic Indigo Button */
-.btn-indigo-primary {
-  background-color: #4F46E5;
-  color: #FFFFFF;
-  font-weight: 800;
-  border-radius: 10px;
+/* Primary Coral Start Session CTA Button */
+.btn-coral-cta {
+  background-color: #E98270;
+  color: #FFFDF8;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 180ms ease;
+  box-shadow: 0 4px 14px rgba(233, 130, 112, 0.25);
+}
+
+.btn-coral-cta:hover {
+  background-color: #D96F61;
+  transform: translateY(-1px);
+}
+
+.btn-coral-cta:active {
+  transform: scale(0.98);
+}
+
+/* Secondary Sage Button */
+.btn-sage-secondary {
+  background-color: #FFFDF8;
+  color: #66765B;
+  border: 1.5px solid #C8CFC0;
+  font-weight: 700;
+  border-radius: 12px;
   transition: all 180ms ease;
 }
 
-.dark .btn-indigo-primary {
-  background-color: #6366F1;
-  color: #FFFFFF;
+.btn-sage-secondary:hover {
+  background-color: #F1F5ED;
+  border-color: #8B9B7A;
 }
 
-.btn-indigo-primary:hover {
-  background-color: #4338CA;
+/* Primary Sage Button */
+.btn-sage-primary {
+  background-color: #8B9B7A;
+  color: #FFFDF8;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 180ms ease;
+  box-shadow: 0 4px 14px rgba(139, 155, 122, 0.25);
+}
+
+.btn-sage-primary:hover {
+  background-color: #66765B;
   transform: translateY(-1px);
 }
 
-.dark .btn-indigo-primary:hover {
-  background-color: #818CF8;
-  transform: translateY(-1px);
-}
-
-.btn-indigo-primary:active {
+.btn-sage-primary:active {
   transform: scale(0.98);
+}
+
+/* Soft Paper Card Container */
+.paper-card {
+  background-color: #FFFDF8;
+  border: 1px solid #E6E0D4;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(48, 49, 47, 0.06);
 }
 
 /* Keyframe Animations */
@@ -145,14 +194,12 @@ a {
   animation: equalizer 600ms ease-in-out 300ms infinite;
 }
 
-/* Prevent mobile viewport pull-to-refresh & page bounce on freehand canvas */
 canvas {
   touch-action: none !important;
   -webkit-user-select: none;
   user-select: none;
 }
 
-/* Hide scrollbar for clean horizontal chip containers */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
