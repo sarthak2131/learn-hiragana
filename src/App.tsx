@@ -181,16 +181,19 @@ export function App() {
   };
 
   const overallStats = getOverallStats();
+  const isPlayingGame = activeTab === 'practice' && isActive && !isCompleted;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F3EA] text-[#30312F] font-sans transition-colors duration-250 pb-20 md:pb-8 relative">
+    <div className={`min-h-screen flex flex-col bg-[#F7F3EA] text-[#30312F] font-sans transition-colors duration-250 relative ${
+      isPlayingGame ? 'h-screen max-h-screen overflow-hidden pb-0' : 'pb-20 md:pb-8'
+    }`}>
       
       {/* 100% Reliable Fixed Background Image Layer (Mobile: japanese_paper_bg_mobile.jpg, Desktop: japanese_paper_bg.jpg) */}
       <div 
         className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat bg-[url('/japanese_paper_bg_mobile.jpg')] sm:bg-[url('/japanese_paper_bg.jpg')]"
       />
 
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className={`relative z-10 flex flex-col ${isPlayingGame ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'}`}>
         <Header
           currentFont={font}
         onOpenFontSelector={() => setIsFontSelectorOpen(true)}
@@ -207,7 +210,9 @@ export function App() {
 
 
       {/* Main View Router */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-1 sm:py-2">
+      <main className={`flex-1 max-w-7xl w-full mx-auto px-2 sm:px-6 lg:px-8 ${
+        isPlayingGame ? 'h-full min-h-0 overflow-hidden flex flex-col py-0' : 'py-1 sm:py-2'
+      }`}>
         {activeTab === 'home' && (
           <HomePage
             currentFont={font}

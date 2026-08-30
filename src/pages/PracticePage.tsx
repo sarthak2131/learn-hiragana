@@ -141,17 +141,17 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   // 3. Render Standalone Full-Session Modes (Sequence Memory, Match Up, Spot Difference)
   if (selectedMode === 'sequence-memory') {
     return (
-      <div className="space-y-3 py-1 flex flex-col min-h-[calc(100vh-140px)] justify-between">
-        <div className="flex justify-between items-center max-w-2xl mx-auto w-full">
+      <div className="h-full min-h-0 flex flex-col justify-between space-y-2 py-0 overflow-hidden">
+        <div className="flex justify-between items-center max-w-2xl mx-auto w-full shrink-0">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4 text-[#66765B]" />
             <span>Exit Game & Setup New</span>
           </button>
         </div>
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 min-h-0 flex flex-col justify-center my-auto overflow-hidden">
           <AudioSequenceMemory
             activeFont={currentFont}
             selectedRowIds={selectedRowIds}
@@ -165,17 +165,17 @@ export const PracticePage: React.FC<PracticePageProps> = ({
 
   if (selectedMode === 'match-up' || selectedMode === 'match') {
     return (
-      <div className="space-y-3 py-1 flex flex-col min-h-[calc(100vh-140px)] justify-between">
-        <div className="flex justify-between items-center max-w-xl mx-auto w-full">
+      <div className="h-full min-h-0 flex flex-col justify-between space-y-2 py-0 overflow-hidden">
+        <div className="flex justify-between items-center max-w-xl mx-auto w-full shrink-0">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4 text-[#66765B]" />
             <span>Exit Match Up & Setup New</span>
           </button>
         </div>
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 min-h-0 flex flex-col justify-center my-auto overflow-hidden">
           <MatchGame
             activeFont={currentFont}
             selectedRowIds={selectedRowIds}
@@ -189,17 +189,17 @@ export const PracticePage: React.FC<PracticePageProps> = ({
 
   if (selectedMode === 'spot-difference' || selectedMode === 'similar') {
     return (
-      <div className="space-y-3 py-1 flex flex-col min-h-[calc(100vh-140px)] justify-between">
-        <div className="flex justify-between items-center max-w-xl mx-auto w-full">
+      <div className="h-full min-h-0 flex flex-col justify-between space-y-2 py-0 overflow-hidden">
+        <div className="flex justify-between items-center max-w-xl mx-auto w-full shrink-0">
           <button
             onClick={onQuitSession}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFFDF8] border border-[#DDD7CB] text-xs font-extrabold text-[#30312F] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4 text-[#66765B]" />
             <span>Exit Spot Difference & Setup New</span>
           </button>
         </div>
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 min-h-0 flex flex-col justify-center my-auto overflow-hidden">
           <SimilarCharacterGame
             currentFont={currentFont}
             selectedRowIds={selectedRowIds}
@@ -219,24 +219,24 @@ export const PracticePage: React.FC<PracticePageProps> = ({
   const qMode = currentQuestion.mode;
 
   return (
-    <div className="max-w-xl mx-auto flex flex-col min-h-[calc(100vh-140px)] justify-between space-y-3 py-1 animate-pageTransition">
+    <div className="max-w-xl mx-auto h-full min-h-0 flex flex-col justify-between space-y-2 py-0 animate-pageTransition overflow-hidden">
       
       {/* Top Question Progress Header */}
-      <div className="flex items-center justify-between gap-3 bg-[#FFFDF8] p-3 sm:p-4 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] shrink-0">
+      <div className="flex items-center justify-between gap-2.5 bg-[#FFFDF8] p-2.5 sm:p-3.5 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] shrink-0">
         <button
           onClick={onQuitSession}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F4F1E9] border border-[#DDD7CB] text-[#6F716C] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] text-xs font-extrabold transition-all shrink-0 shadow-xs"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F4F1E9] border border-[#DDD7CB] text-[#6F716C] hover:bg-[#F8E5E0] hover:border-[#D96F61] hover:text-[#D96F61] text-[11px] font-extrabold transition-all shrink-0 shadow-xs"
           title="Quit session and return to studio setup"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Quit / Setup New</span>
         </button>
 
         <div className="flex-1 flex flex-col items-center max-w-xs mx-auto">
-          <div className="text-xs font-bold text-[#30312F] mb-1">
+          <div className="text-[11px] font-bold text-[#30312F] mb-0.5">
             Question {currentIndex + 1} of {totalQuestions}
           </div>
-          <div className="w-full h-2 bg-[#E8E4DA] rounded-full overflow-hidden border border-[#E6E0D4]">
+          <div className="w-full h-1.5 bg-[#E8E4DA] rounded-full overflow-hidden border border-[#E6E0D4]">
             <div
               className="h-full bg-[#8B9B7A] rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
@@ -244,13 +244,13 @@ export const PracticePage: React.FC<PracticePageProps> = ({
           </div>
         </div>
 
-        <span className="text-xs font-black text-[#66765B] bg-[#E5EBDD] border border-[#CCD6C2] px-3 py-1 rounded-full">
+        <span className="text-[10px] font-black text-[#66765B] bg-[#E5EBDD] border border-[#CCD6C2] px-2.5 py-0.5 rounded-full">
           {progressPercent}%
         </span>
       </div>
 
-      {/* Render Active Question Subcomponent (Stretches Vertically to Fill Screen) */}
-      <div className="flex-1 flex flex-col justify-center my-auto">
+      {/* Render Active Question Subcomponent */}
+      <div className="flex-1 min-h-0 flex flex-col justify-center my-auto overflow-hidden">
         {(qMode === 'read-it' || qMode === 'char-to-sound') && (
           <CharacterToSound
             question={currentQuestion}
@@ -327,8 +327,8 @@ export const PracticePage: React.FC<PracticePageProps> = ({
         )}
       </div>
 
-      {/* Contextual Learning Tip at Bottom */}
-      <div className="shrink-0">
+      {/* Contextual Learning Tip (Hidden on mobile during active gameplay) */}
+      <div className="shrink-0 hidden sm:block">
         <LearningTip tipText={currentTip} />
       </div>
 

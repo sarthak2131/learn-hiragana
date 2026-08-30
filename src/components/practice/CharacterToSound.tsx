@@ -44,41 +44,41 @@ export const CharacterToSound: React.FC<CharacterToSoundProps> = ({
   const displayFontClass = question.displayFont ? FONT_CLASSES[question.displayFont] : FONT_CLASSES[activeFont];
 
   return (
-    <div className="max-w-xl mx-auto w-full space-y-3.5 flex flex-col justify-between py-1 animate-pageTransition">
+    <div className="max-w-xl mx-auto w-full h-full min-h-0 flex flex-col justify-between space-y-2 py-0 animate-pageTransition overflow-hidden">
       
       {/* Top Question Category Card */}
-      <div className="bg-[#FFFDF8] p-3.5 sm:p-4 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-3">
+      <div className="bg-[#FFFDF8] p-2 sm:p-3.5 rounded-2xl border border-[#E6E0D4] shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex items-center justify-between gap-2 shrink-0">
         <div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-[#66765B] px-2.5 py-0.5 rounded-full bg-[#E5EBDD] border border-[#CCD6C2]">
+          <span className="text-[9px] font-black uppercase tracking-widest text-[#66765B] px-2 py-0.5 rounded-full bg-[#E5EBDD] border border-[#CCD6C2]">
             READ IT — CHARACTER TO SOUND
           </span>
-          <h3 className="text-xs sm:text-sm font-extrabold text-[#30312F] mt-1">
+          <h3 className="text-[11px] sm:text-sm font-extrabold text-[#30312F] mt-0.5">
             Select the correct sound for this character:
           </h3>
         </div>
 
         <button
           onClick={() => onPlayAudio(question.character.character)}
-          className="p-2.5 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-all hover:scale-105 shadow-xs shrink-0"
+          className="p-1.5 sm:p-2.5 rounded-xl bg-[#E5EBDD] text-[#66765B] hover:bg-[#DCE4D4] transition-all hover:scale-105 shadow-xs shrink-0"
           title="Play Audio"
         >
-          <Volume2 className="w-4 h-4" />
+          <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
 
-      {/* Hero Character Display Panel (Balanced Vertical Height) */}
-      <div className="bg-[#FFFDF8] border border-[#E6E0D4] p-6 sm:p-10 rounded-2xl shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex flex-col items-center justify-center text-center space-y-2 min-h-[160px] sm:min-h-[220px]">
-        <div className={`text-7xl sm:text-9xl font-black text-[#30312F] ${displayFontClass}`}>
+      {/* Hero Character Display Panel */}
+      <div className="bg-[#FFFDF8] border border-[#E6E0D4] p-3 sm:p-6 rounded-2xl shadow-[0_4px_18px_rgba(48,49,47,0.06)] flex flex-col items-center justify-center text-center space-y-1 flex-1 min-h-0 my-0.5">
+        <div className={`text-5xl sm:text-8xl font-black text-[#30312F] ${displayFontClass}`}>
           {question.character.character}
         </div>
 
-        <div className="text-xs text-[#6F716C] font-semibold">
+        <div className="text-[10px] sm:text-xs text-[#6F716C] font-semibold">
           Row: <span className="font-bold text-[#30312F]">{question.character.rowName}</span>
         </div>
       </div>
 
       {/* 2x2 Answer Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 shrink-0">
         {question.options.map((option) => {
           const isSelected = selectedOption === option;
           const isCorrect = option === question.correctAnswer;
@@ -100,14 +100,14 @@ export const CharacterToSound: React.FC<CharacterToSoundProps> = ({
               key={option}
               disabled={isSubmitted}
               onClick={() => handleSelect(option)}
-              className={`p-4 sm:p-5 min-h-[58px] sm:min-h-[68px] rounded-2xl border flex items-center justify-center transition-all duration-200 text-lg sm:text-2xl font-bold font-mono tracking-wider ${btnStyle}`}
+              className={`p-2.5 sm:p-4 h-[44px] sm:h-[60px] rounded-2xl border flex items-center justify-center transition-all duration-200 text-base sm:text-2xl font-bold font-mono tracking-wider ${btnStyle}`}
             >
               <span>"{option}"</span>
               {isSubmitted && isCorrect && isSelected && (
-                <CheckCircle2 className="w-4 h-4 text-[#66765B] ml-2 animate-scaleIn" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#66765B] ml-1.5 animate-scaleIn" />
               )}
               {isSubmitted && !isCorrect && isSelected && (
-                <XCircle className="w-4 h-4 text-[#D96F61] ml-2 animate-scaleIn" />
+                <XCircle className="w-3.5 h-3.5 text-[#D96F61] ml-1.5 animate-scaleIn" />
               )}
             </button>
           );
